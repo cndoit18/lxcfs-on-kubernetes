@@ -1,0 +1,59 @@
+# This is an example .goreleaser.yml file with some sane defaults.
+# Make sure to check the documentation at https://goreleaser.com
+before:
+  hooks:
+    - go mod tidy
+    - make generate
+
+
+builds:
+  - skip: true
+
+
+dockers:
+  - image_templates:
+      - "ghcr.io/cndoit18/lxcfs-agent:{{ .Tag }}"
+      - "ghcr.io/cndoit18/lxcfs-agent:latest"
+
+    skip_push: false 
+
+    dockerfile: Dockerfile.agent
+
+  - image_templates:
+      - "ghcr.io/cndoit18/lxcfs-manager:{{ .Tag }}"
+      - "ghcr.io/cndoit18/lxcfs-manager:latest"
+
+    build_flag_templates:
+      - --build-arg=GOLDFLAGS=-X 'github.com/cndoit18/lxcfs-on-kubernetes/version.AppVersion={{ .Version }}' -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.GitCommit={{ .FullCommit }}'
+    
+    skip_push: false
+    
+    dockerfile: Dockerfile
+    
+    extra_files:
+    - cmd/
+    - pkg/
+    - version/
+    - go.mod
+    - go.sum
+
+
+changelog:
+  sort: asc
+
+  filters:
+    exclude:
+      - '^docs:'
+      - typo
+      - (?i)foo
+
+
+signs:
+- artifacts: checksum
+
+release:
+  draft: true
+  prerelease: auto
+
+  extra_files:
+  - glob: charts/*.tgz
