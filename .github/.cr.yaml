@@ -1,0 +1,7 @@
+git-repo: lxcfs-on-kubernetes
+release-name-template: "v{{ .Version }}"
+skip-existing: true
+owner: cndoit18
+package-path: charts
+charts-repo: https://cndoit18.github.io/lxcfs-on-kubernetes/
+index-path: index.yaml

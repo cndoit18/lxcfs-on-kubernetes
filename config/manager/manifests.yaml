@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+  labels:
+    app.kubernetes.io/component: lxcfs
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: lxcfs
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: lxcfs
+    spec:
+      containers:
+        - image: ghcr.io/cndoit18/lxcfs-manager
+          name: manager
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 500m
+              memory: 300Mi
+            requests:
+              cpu: 300m
+              memory: 200Mi
+      terminationGracePeriodSeconds: 10
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: system
+  name: controller-manager-daemonset
+  labels:
+    app.kubernetes.io/component: lxcfs-agent
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: lxcfs-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: lxcfs-agent
+    spec:
+      hostPID: true
+      containers:
+        - name: agent
+          image: ghcr.io/cndoit18/lxcfs-agent
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: cgroup
+              mountPath: /sys/fs/cgroup
+          resources:
+            limits:
+              cpu: 500m
+              memory: 300Mi
+            requests:
+              cpu: 300m
+              memory: 200Mi
+          imagePullPolicy: IfNotPresent
+      volumes:
+        - name: cgroup
+          hostPath:
+            path: /sys/fs/cgroup

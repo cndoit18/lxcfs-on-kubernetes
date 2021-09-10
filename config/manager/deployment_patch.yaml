@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: lxcfs
+  template:
+    spec:
+      containers:
+      - name: manager
+        args:
+        - --lxcfs-path=/var/lib/lxcfs
