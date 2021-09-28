@@ -16,17 +16,28 @@ spec:
     spec:
       containers:
       - image: ghcr.io/cndoit18/lxcfs-manager:dev
-        imagePullPolicy: Always
-        args:
-        - --lxcfs-path=/var/lib/lxcfs
         name: manager
+        securityContext:
+          allowPrivilegeEscalation: false
         resources:
           limits:
             cpu: 500m
             memory: 300Mi
           requests:
-            cpu: 500m
-            memory: 300Mi
+            cpu: 300m
+            memory: 200Mi
+        ports:
+        - name: ready
+          containerPort: 5000
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: ready
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: ready
       terminationGracePeriodSeconds: 10
 ---
 apiVersion: apps/v1
@@ -46,35 +57,15 @@ spec:
         app.kubernetes.io/component: lxcfs-agent
     spec:
       hostPID: true
-      tolerations:
-      - key: node-role.kubernetes.io/master
-        effect: NoSchedule
       containers:
       - name: agent
         image: ghcr.io/cndoit18/lxcfs-agent:dev
-        imagePullPolicy: Always
-        args:
-          - "/var/lib/lxcfs"
         securityContext:
           privileged: true
         volumeMounts:
         - name: cgroup
           mountPath: /sys/fs/cgroup
-        - name: lxcfs
-          mountPath: /var/lib/lxcfs
-          mountPropagation: Bidirectional
-        resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
       volumes:
       - name: cgroup
         hostPath:
           path: /sys/fs/cgroup
-      - name: lxcfs
-        hostPath:
-          path: /var/lib/lxcfs
-          type: DirectoryOrCreate
