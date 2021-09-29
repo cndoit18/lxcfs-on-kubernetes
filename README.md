@@ -45,7 +45,15 @@ helm repo add lxcfs-on-kubernetes https://cndoit18.github.io/lxcfs-on-kubernetes
 you can then do
 
 ```
-helm upgrade --install lxcfs lxcfs-on-kubernetes/lxcfs-on-kubernetes
+helm upgrade --install lxcfs lxcfs-on-kubernetes/lxcfs-on-kubernetes -n lxcfs --create-namespace
 ```
 
 For what settings you can override with `--set`, `--set-string`, `--set-file` or `--values`, you can refer to the [values.yaml](charts/lxcfs-on-kubernetes/values.yaml) file.
+
+you can enable the namespace for injection.
+
+```
+kubectl label namespace default mount-lxcfs=enabled
+```
+
+> You can change it by setting [matchLabels](charts/lxcfs-on-kubernetes/README.md##Values) during installation
