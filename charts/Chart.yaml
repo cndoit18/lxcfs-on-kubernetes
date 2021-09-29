@@ -14,6 +14,7 @@ sources:
 maintainers:
   - name: cndoit18
     email: cndoit18@outlook.com
+    url: https://github.com/cndoit18
 
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.

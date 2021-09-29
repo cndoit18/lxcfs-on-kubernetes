@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: controller-manager-daemonset
+  namespace: system
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: lxcfs-agen
+  template:
+    spec:
+      containers:
+      - name: agent
+        args:
+        - "/var/lib/lxcfs"
+        volumeMounts:
+        - name: lxcfs
+          mountPath: /var/lib/lxcfs
+          mountPropagation: Bidirectional
+      volumes:
+        - name: lxcfs
+          hostPath:
+            path: /var/lib/lxcfs
+            type: DirectoryOrCreate
