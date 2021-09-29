@@ -57,3 +57,7 @@ vars:
     kind: Service
     version: v1
     name: webhook-service
+
+patches:
+- daemonset_patch.yaml
+- deployment_patch.yaml

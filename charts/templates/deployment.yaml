@@ -13,12 +13,15 @@ spec:
       annotations: {{- toYaml .Values.podAnnotations | nindent 8 }}
       labels: {{- include "chart.selectorLabels" . | nindent 8 }}
     spec:
-      affinity: {{- toYaml .Values.affinity | nindent 8 }}
       containers:
       - args:
-        - --lxcfs-path=/var/lib/lxcfs
+        - --lxcfs-path={{.Values.lxcfs.mountPath}}
+        - --v={{.Values.logLevel}}
+        - --leader-election={{.Values.leaderElection.enable}}
+        - --leader-election-namespace={{.Values.leaderElection.namespace}}
+        - --leader-election-id={{.Values.leaderElection.id}}
         image: '{{.Values.image.repository}}:{{.Values.image.tag|default .Chart.AppVersion}}'
-        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        imagePullPolicy: {{ .Values.pullPolicy | quote }}
         livenessProbe:
           httpGet:
             path: /healthz
@@ -33,13 +36,7 @@ spec:
             path: /readyz
             port: ready
         resources: {{- toYaml .Values.resources | nindent 10 }}
-        securityContext:
-          allowPrivilegeEscalation: {{ .Values.allowPrivilegeEscalation }}
-      nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
-      securityContext: {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "chart.serviceAccountName" . | quote }}
       terminationGracePeriodSeconds: 10
-      tolerations: {{- toYaml .Values.tolerations | nindent 8 }}
       volumes:
       - name: cert
         secret:

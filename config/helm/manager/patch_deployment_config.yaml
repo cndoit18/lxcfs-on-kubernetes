@@ -9,4 +9,8 @@ spec:
       containers:
       - name: manager
         args:
-          - "--lxcfs-path=/var/lib/lxcfs"
+          - "--lxcfs-path={{.Values.lxcfs.mountPath}}"
+          - "--v={{.Values.logLevel}}"
+          - "--leader-election={{.Values.leaderElection.enable}}"
+          - "--leader-election-namespace={{.Values.leaderElection.namespace}}"
+          - "--leader-election-id={{.Values.leaderElection.id}}"

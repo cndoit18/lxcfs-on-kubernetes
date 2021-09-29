@@ -16,6 +16,10 @@ commonAnnotations:
 bases:
 - ../../webhook
 
-
-patchesStrategicMerge:
-- mutatingwebhook_endpoint_patch.yaml
+patchesJson6902:
+  - target:
+      version: v1
+      group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      name:  mutating-webhook-configuration
+    path: patch_mutatingwebhook_config.yaml

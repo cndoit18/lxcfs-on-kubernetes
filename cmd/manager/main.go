@@ -45,6 +45,7 @@ func init() {
 
 func main() {
 	var (
+		leaderElection          = flag.Bool("leader-election", false, "LeaderElection determines whether or not to use leader election when starting the manager.")
 		leaderElectionNamespace = flag.String("leader-election-namespace", "default", "The leader election namespace.")
 		leaderElectionID        = flag.String("leader-election-id", "lxcfs-on-kubernetes-leader-election", "The leader election id.")
 		lxcfsPath               = flag.String("lxcfs-path", "/var/lib/lxcfs", "Path for lxcfs mounts.")
@@ -74,7 +75,7 @@ func main() {
 
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
-		LeaderElection:          true,
+		LeaderElection:          *leaderElection,
 		LeaderElectionNamespace: *leaderElectionNamespace,
 		LeaderElectionID:        *leaderElectionID,
 		HealthProbeBindAddress:  ":8081",

@@ -212,6 +212,13 @@ $(CHART_TEMPLATE_PATH)/deployment.yaml: kustomize kustomize $(wildcard config/he
 	sed "s/'\({{[^}}]*}}\)'/\1/g" \
 		>> $(CHART_TEMPLATE_PATH)/deployment.yaml
 
+$(CHART_TEMPLATE_PATH)/daemonset.yaml: kustomize kustomize $(wildcard config/helm/manager/*) $(wildcard config/manager/*)
+	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/daemonset.yaml
+	$(KUSTOMIZE) build --reorder legacy config/helm/manager | \
+	$(KUSTOMIZE) cfg grep --annotate=false "kind=DaemonSet" | \
+	sed "s/'\({{[^}}]*}}\)'/\1/g" \
+		>> $(CHART_TEMPLATE_PATH)/daemonset.yaml
+
 $(CHARTS_DIRECTORY)/README.md: helm-docs $(CHARTS_DIRECTORY)/values.yaml $(CHARTS_DIRECTORY)/Chart.yaml
 	$(HELM_DOCS) $(CHARTS_DIRECTORY)
 
@@ -219,6 +226,7 @@ $(CHARTS_DIRECTORY)/lxcfs-on-kubernetes-$(RELEASE_VERSION).tgz: helm $(CHART_TEM
 	$(CHART_TEMPLATE_PATH)/certificate.yaml $(CHART_TEMPLATE_PATH)/issuer.yaml \
 	$(CHART_TEMPLATE_PATH)/mutatingwebhookconfiguration.yaml \
 	$(CHART_TEMPLATE_PATH)/deployment.yaml \
+	$(CHART_TEMPLATE_PATH)/daemonset.yaml \
 	$(CHART_TEMPLATE_PATH)/clusterrolebinding.yaml \
 	$(CHARTS_DIRECTORY)/README.md
 	sed -i.bak -E "s#  tag: .*#  tag: ${IMAGE_TAGS}#" ${CHARTS_DIRECTORY}/values.yaml

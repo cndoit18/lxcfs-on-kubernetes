@@ -4,17 +4,20 @@ kind: MutatingWebhookConfiguration
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: '{{.Release.Namespace}}/{{. | include "chart.fullname"}}-serving-cert'
+  creationTimestamp: null
   name: '{{ include "chart.fullname" . }}-mutating-webhook-configuration'
 webhooks:
 - admissionReviewVersions:
   - v1
   clientConfig:
     service:
-      name: {{ include "chart.fullname" . | quote }}
+      name: '{{ include "chart.fullname" . }}-webhook-service'
       namespace: {{ .Release.Namespace | quote }}
       path: /mount-lxcfs
   failurePolicy: Ignore
   name: club.cndoit18.lxcfs-on-kubernetes
+  namespaceSelector:
+    matchLabels: {{- toYaml .Values.lxcfs.matchLabels | nindent 6 }}
   rules:
   - apiGroups:
     - ""

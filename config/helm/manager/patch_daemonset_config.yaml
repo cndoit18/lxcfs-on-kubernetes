@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: controller-manager-daemonset
+  namespace: system
+spec:
+  template:
+    spec:
+      containers:
+      - name: agent
+        args:
+        - "{{.Values.lxcfs.mountPath}}"
+        volumeMounts:
+        - name: lxcfs
+          mountPath: "{{.Values.lxcfs.mountPath}}"
+          mountPropagation: Bidirectional
+      volumes:
+        - name: lxcfs
+          hostPath:
+            path: "{{.Values.lxcfs.mountPath}}"
+            type: DirectoryOrCreate

@@ -15,29 +15,28 @@ spec:
         app.kubernetes.io/component: lxcfs
     spec:
       containers:
-      - image: ghcr.io/cndoit18/lxcfs-manager:dev
-        name: manager
-        securityContext:
-          allowPrivilegeEscalation: false
-        resources:
-          limits:
-            cpu: 500m
-            memory: 300Mi
-          requests:
-            cpu: 300m
-            memory: 200Mi
-        ports:
-        - name: ready
-          containerPort: 5000
-          protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: ready
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: ready
+        - image: ghcr.io/cndoit18/lxcfs-manager:dev
+          name: manager
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 500m
+              memory: 300Mi
+            requests:
+              cpu: 300m
+              memory: 200Mi
+          ports:
+            - name: ready
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: ready
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: ready
       terminationGracePeriodSeconds: 10
 ---
 apiVersion: apps/v1
@@ -58,14 +57,22 @@ spec:
     spec:
       hostPID: true
       containers:
-      - name: agent
-        image: ghcr.io/cndoit18/lxcfs-agent:dev
-        securityContext:
-          privileged: true
-        volumeMounts:
-        - name: cgroup
-          mountPath: /sys/fs/cgroup
+        - name: agent
+          image: ghcr.io/cndoit18/lxcfs-agent:dev
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: cgroup
+              mountPath: /sys/fs/cgroup
+          resources:
+            limits:
+              cpu: 500m
+              memory: 300Mi
+            requests:
+              cpu: 300m
+              memory: 200Mi
+          imagePullPolicy: IfNotPresent
       volumes:
-      - name: cgroup
-        hostPath:
-          path: /sys/fs/cgroup
+        - name: cgroup
+          hostPath:
+            path: /sys/fs/cgroup
