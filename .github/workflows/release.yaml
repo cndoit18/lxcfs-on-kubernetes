@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          
+
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -55,3 +55,18 @@ jobs:
       - uses: release-drafter/release-drafter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.6.0
+        run: |
+          APP_VERSION=${{github.event.inputs.version}} make helm-generate
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.2.0
+        with:
+          charts_dir: charts
+          config: .github/cr.yaml
+        env:
+          CR_TOKEN: "${{ secrets.GH_PAT }}"
