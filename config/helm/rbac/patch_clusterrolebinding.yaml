@@ -3,6 +3,6 @@ kind: ClusterRoleBinding
 metadata:
   name: manager-rolebinding
 subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: '{{ .Release.Namespace | quote }}'
+  - kind: ServiceAccount
+    name: default
+    namespace: "{{ .Release.Namespace | quote }}"

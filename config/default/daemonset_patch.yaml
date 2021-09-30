@@ -10,13 +10,13 @@ spec:
   template:
     spec:
       containers:
-      - name: agent
-        args:
-        - "/var/lib/lxcfs"
-        volumeMounts:
-        - name: lxcfs
-          mountPath: /var/lib/lxcfs
-          mountPropagation: Bidirectional
+        - name: agent
+          args:
+            - "/var/lib/lxcfs"
+          volumeMounts:
+            - name: lxcfs
+              mountPath: /var/lib/lxcfs
+              mountPropagation: Bidirectional
       volumes:
         - name: lxcfs
           hostPath:

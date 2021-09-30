@@ -1,6 +1,6 @@
 namePrefix: '{{ include "chart.fullname" . }}-'
 
-namespace: '{{ .Release.Namespace | quote }}'
+namespace: "{{ .Release.Namespace | quote }}"
 
 generatorOptions:
   disableNameSuffixHash: true
@@ -14,12 +14,12 @@ commonAnnotations:
 # - mutatingwebhook_endpoint_patch.yaml
 
 bases:
-- ../../webhook
+  - ../../webhook
 
 patchesJson6902:
   - target:
       version: v1
       group: admissionregistration.k8s.io
       kind: MutatingWebhookConfiguration
-      name:  mutating-webhook-configuration
+      name: mutating-webhook-configuration
     path: patch_mutatingwebhook_config.yaml

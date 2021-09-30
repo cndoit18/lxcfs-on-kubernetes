@@ -4,5 +4,5 @@ metadata:
   name: serving-cert
 spec:
   dnsNames:
-  - '{{ include "chart.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc'
-  - '{{ include "chart.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.cluster.local'
+    - '{{ include "chart.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc'
+    - '{{ include "chart.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.cluster.local'

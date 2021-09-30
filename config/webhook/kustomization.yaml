@@ -1,9 +1,9 @@
 resources:
-- manifests.yaml
-- service.yaml
+  - manifests.yaml
+  - service.yaml
 
 configurations:
-- kustomizeconfig.yaml
+  - kustomizeconfig.yaml
 
 patchesStrategicMerge:
-- mutatingwebhook_patch.yaml
+  - mutatingwebhook_patch.yaml

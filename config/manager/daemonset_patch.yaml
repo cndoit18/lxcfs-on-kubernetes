@@ -9,14 +9,17 @@ spec:
       app.kubernetes.io/component: lxcfs-agen
   template:
     spec:
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
       containers:
-      - name: agent
-        args:
-        - "/var/lib/lxcfs"
-        volumeMounts:
-        - name: lxcfs
-          mountPath: /var/lib/lxcfs
-          mountPropagation: Bidirectional
+        - name: agent
+          args:
+            - "/var/lib/lxcfs"
+          volumeMounts:
+            - name: lxcfs
+              mountPath: /var/lib/lxcfs
+              mountPropagation: Bidirectional
       volumes:
         - name: lxcfs
           hostPath:
