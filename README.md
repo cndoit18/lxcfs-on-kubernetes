@@ -1,5 +1,10 @@
 # lxcfs-on-kubernetes
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/lxcfs-on-kubernetes)](https://artifacthub.io/packages/search?repo=lxcfs-on-kubernetes)
+[![CodeQL](https://github.com/cndoit18/lxcfs-on-kubernetes/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/cndoit18/lxcfs-on-kubernetes/actions/workflows/codeql-analysis.yml)
+
+
 This project will automatically deploy [LXCFS](https://github.com/lxc/lxcfs) while mounted to the container
 
 ## Introduction
@@ -17,6 +22,7 @@ such as:
 /proc/meminfo
 /proc/stat
 /proc/swaps
+
 /proc/uptime
 /proc/slabinfo
 /sys/devices/system/cpu
@@ -48,7 +54,7 @@ you can then do
 helm upgrade --install lxcfs lxcfs-on-kubernetes/lxcfs-on-kubernetes -n lxcfs --create-namespace
 ```
 
-For what settings you can override with `--set`, `--set-string`, `--set-file` or `--values`, you can refer to the [values.yaml](charts/lxcfs-on-kubernetes/values.yaml) file.
+For what settings you can override with `--set`, `--set-string`, `--set-file` or `--values`, you can refer to the [values.yaml](charts/lxcfs-on-kubernetes/README.md) file.
 
 you can enable the namespace for injection.
 
@@ -56,4 +62,4 @@ you can enable the namespace for injection.
 kubectl label namespace default mount-lxcfs=enabled
 ```
 
-> You can change it by setting [matchLabels](charts/lxcfs-on-kubernetes/README.md##Values) during installation
+> You can change it by setting [matchLabels](charts/lxcfs-on-kubernetes/README.md) during installation
