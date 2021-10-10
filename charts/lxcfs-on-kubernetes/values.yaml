@@ -63,5 +63,11 @@ lxcfs:
   # lxcfs.matchLabels -- For namespaces that match the labes, the Pods under it will mount lxcfs.
   matchLabels: 
     mount-lxcfs: enabled
-  # podAnnotations -- Additional annotations to add to the agent Pods
+  # lxcfs.podAnnotations -- Additional annotations to add to the agent Pods
   podAnnotations: {}
+
+  # lxcfs.args -- Adjusting the boot parameters of lxcfs
+  args:
+  - -l
+  - --enable-cfs
+  - --enable-pidfd

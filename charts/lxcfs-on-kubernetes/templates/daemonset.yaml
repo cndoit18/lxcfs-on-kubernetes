@@ -14,8 +14,7 @@ spec:
       labels: {{- include "chart.lxcfs.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-      - args:
-        - {{.Values.lxcfs.mountPath}}
+      - args: {{- include "chart.lxcfs.args" . | nindent 8 }}
         image: {{.Values.image.agent}}
         imagePullPolicy: {{ .Values.pullPolicy | quote }}
         name: agent

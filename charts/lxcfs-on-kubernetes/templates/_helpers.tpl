@@ -56,6 +56,16 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
+lxcfs args
+*/}}
+{{- define "chart.lxcfs.args" -}}
+{{- if .Values.lxcfs.args }}
+{{- toYaml .Values.lxcfs.args }}
+{{- end }}
+- {{.Values.lxcfs.mountPath}}
+{{- end }}
+
+{{/*
 Selector labels
 */}}
 {{- define "chart.selectorLabels" -}}
