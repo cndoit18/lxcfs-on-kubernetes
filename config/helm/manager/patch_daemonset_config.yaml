@@ -8,8 +8,7 @@ spec:
     spec:
       containers:
         - name: agent
-          args:
-            - "{{.Values.lxcfs.mountPath}}"
+          args: '{{- include "chart.lxcfs.args" . | nindent 8 }}'
           volumeMounts:
             - name: lxcfs
               mountPath: "{{.Values.lxcfs.mountPath}}"

@@ -30,11 +30,12 @@ Kubernetes: `>= 1.16.0-0`
 | leaderElection.id | string | `"lxcfs-on-kubernetes-leader-election"` | The id used to store the ConfigMap for leader election |
 | leaderElection.namespace | string | `"kube-system"` | The namespace used to store the ConfigMap for leader election |
 | logLevel | int | `4` | Set the verbosity of controller. Range of 0 - 6 with 6 being the most verbose. Info level is 4. |
+| lxcfs.args | list | `["-l","--enable-cfs","--enable-pidfd"]` | Adjusting the boot parameters of lxcfs |
 | lxcfs.matchLabels | object | `{"mount-lxcfs":"enabled"}` | For namespaces that match the labes, the Pods under it will mount lxcfs. |
 | lxcfs.mountPath | string | `"/var/lib/lxcfs"` | Specify the mount path of lxcfs on the host |
-| lxcfs.podAnnotations | object | `{}` |  |
+| lxcfs.podAnnotations | object | `{}` | Additional annotations to add to the agent Pods |
 | lxcfs.resources | object | `{"limits":{"cpu":"500m","memory":"300Mi"},"requests":{"cpu":"300m","memory":"200M"}}` | Expects input structure as per specification <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core> |
-| podAnnotations | object | `{}` | Additional annotations to add to the agent Pods |
+| podAnnotations | object | `{}` | Additional annotations to add to the controller Pods |
 | pullPolicy | string | `"IfNotPresent"` | The image pull policy. |
 | replicas | int | `3` | Number of replicas for the controller |
 | resources | object | `{"limits":{"cpu":"500m","memory":"300Mi"},"requests":{"cpu":"300m","memory":"200Mi"}}` | Expects input structure as per specification <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core> |

@@ -118,6 +118,7 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 		"lxcfs-proc-swaps":                    "/proc/swaps",
 		"lxcfs-proc-uptime":                   "/proc/uptime",
 		"lxcfs-proc-loadavg":                  "/proc/loadavg",
+		"lxcfs-sys-devices-system-cpu":        "/sys/devices/system/cpu",
 		"lxcfs-sys-devices-system-cpu-online": "/sys/devices/system/cpu/online",
 	}
 	for _, v := range volumeMounts {
@@ -180,6 +181,11 @@ func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
 		"lxcfs-proc-loadavg": {
 			HostPath: &corev1.HostPathVolumeSource{
 				Path: m.mutatePath + "proc/loadavg",
+			},
+		},
+		"lxcfs-sys-devices-system-cpu": {
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: m.mutatePath + "sys/devices/system/cpu",
 			},
 		},
 		"lxcfs-sys-devices-system-cpu-online": {
