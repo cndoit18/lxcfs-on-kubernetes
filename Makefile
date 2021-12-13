@@ -238,10 +238,12 @@ $(CHART_TEMPLATE_PATH)/deployment.yaml: kustomize kustomize $(wildcard config/he
 
 $(CHART_TEMPLATE_PATH)/daemonset.yaml: kustomize kustomize $(wildcard config/helm/manager/*) $(wildcard config/manager/*)
 	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/daemonset.yaml
+	echo '{{- if .Values.lxcfs.useDaemonset -}}' >> $(CHART_TEMPLATE_PATH)/daemonset.yaml
 	$(KUSTOMIZE) build --reorder legacy config/helm/manager | \
 	$(KUSTOMIZE) cfg grep --annotate=false "kind=DaemonSet" | \
 	sed "s/'\({{[^}}]*}}\)'/\1/g" \
 		>> $(CHART_TEMPLATE_PATH)/daemonset.yaml
+	echo '{{- end -}}' >> $(CHART_TEMPLATE_PATH)/daemonset.yaml
 
 $(CHART_PROJECT_PATH)/README.md: helm-docs $(CHART_PROJECT_PATH)/values.yaml $(CHART_PROJECT_PATH)/Chart.yaml
 	$(HELM_DOCS) $(CHART_PROJECT_PATH)
