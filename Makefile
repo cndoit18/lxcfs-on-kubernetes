@@ -98,7 +98,7 @@ controller-gen:
 $(CONTROLLER_GEN):
 	$(MAKE) $(BIN)
 	# https://github.com/kubernetes-sigs/controller-tools/tree/master/cmd/controller-gen
-	go install 'sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION)'
+	go get 'sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION)'
 	go build -mod=readonly -o $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
 	go mod tidy
 
