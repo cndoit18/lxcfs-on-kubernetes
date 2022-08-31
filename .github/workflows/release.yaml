@@ -34,8 +34,6 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@outlook.com"
-          git commit -am 'release ${{ github.event.inputs.version }}' || true
-          git push origin master
           tag='${{ github.event.inputs.version }}'
           git tag --annotate --message "Tag for release $tag" "$tag"
           git push origin "refs/tags/$tag"
