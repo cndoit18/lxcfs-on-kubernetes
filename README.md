@@ -35,8 +35,7 @@ running.
 
 ## Prerequisites
 
-1. `Kubernetes` cluster (v1.19+) is running (see [Applicative Kubernetes versions](../../README.md#applicative-kubernetes-versions)
-   for more information). For local development purpose, check [Kind installation](./kind-installation.md).
+1. `Kubernetes` cluster (v1.19+) is running. For local development purpose, check [Kind installation](https://kind.sigs.k8s.io/docs/user/quick-start/#installation).
 1. `cert-manager` (v1.2+) is [installed](https://cert-manager.io/docs/installation/kubernetes/).
 1. `helm` v3 is [installed](https://helm.sh/docs/intro/install/).
 
