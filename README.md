@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/lxcfs-on-kubernetes)](https://artifacthub.io/packages/search?repo=lxcfs-on-kubernetes)
 [![CodeQL](https://github.com/cndoit18/lxcfs-on-kubernetes/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/cndoit18/lxcfs-on-kubernetes/actions/workflows/codeql-analysis.yml)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fcndoit18%2Flxcfs-on-kubernetes.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fcndoit18%2Flxcfs-on-kubernetes?ref=badge_shield)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fcndoit18%2Flxcfs-on-kubernetes.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fcndoit18%2Flxcfs-on-kubernetes?ref=badge_large)
 
 
 This project will automatically deploy [LXCFS](https://github.com/lxc/lxcfs) while mounted to the container
