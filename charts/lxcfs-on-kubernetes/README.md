@@ -23,6 +23,7 @@ Kubernetes: `>= 1.16.0-0`
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| affinity | object | `{}` | Affinity to add to the controller Pods |
 | image.agent | string | `"ghcr.io/cndoit18/lxcfs-agent:v0.1.4"` | lxcfs-on-kubernetes agent image |
 | image.manager | string | `"ghcr.io/cndoit18/lxcfs-manager:v0.1.4"` | lxcfs-on-kubernetes controller image |
 | imagePullSecrets | list | `[]` | Reference to one or more secrets to be used when pulling images <https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/> For example: `[   {"name":"image-pull-secret"} ]` |

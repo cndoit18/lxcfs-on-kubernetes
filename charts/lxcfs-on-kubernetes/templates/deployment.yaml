@@ -14,6 +14,7 @@ spec:
       annotations: {{- toYaml .Values.podAnnotations | nindent 8 }}
       labels: {{- include "chart.selectorLabels" . | nindent 8 }}
     spec:
+      affinity: {{ if .Values.affinity }}{{ toYaml .Values.affinity | nindent 8 }}{{ else }}{}{{ end }}
       containers:
       - args:
         - --lxcfs-path={{.Values.lxcfs.mountPath}}
