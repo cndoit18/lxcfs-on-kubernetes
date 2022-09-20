@@ -38,6 +38,12 @@ patchesJson6902:
   - target:
       version: v1
       group: apps
+      kind: Deployment
+      name: controller-manager
+    path: patch_deployment_spec.yaml
+  - target:
+      version: v1
+      group: apps
       kind: DaemonSet
       name: controller-manager-daemonset
     path: patch_daemonset_metadata.yaml

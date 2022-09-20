@@ -6,6 +6,7 @@ metadata:
   name: '{{ include "chart.fullname" . }}-controller-manager'
   namespace: {{ .Release.Namespace | quote }}
 spec:
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels: {{- include "chart.selectorLabels" . | nindent 6 }}
   template:

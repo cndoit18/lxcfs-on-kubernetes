@@ -38,7 +38,7 @@ Kubernetes: `>= 1.16.0-0`
 | lxcfs.useDaemonset | bool | `true` | Installing lxcfs with daemonset |
 | podAnnotations | object | `{}` | Additional annotations to add to the controller Pods |
 | pullPolicy | string | `"IfNotPresent"` | The image pull policy. |
-| replicas | int | `3` | Number of replicas for the controller |
+| replicas | int | `1` | Number of replicas for the controller |
 | resources | object | `{"limits":{"cpu":"500m","memory":"300Mi"},"requests":{"cpu":"300m","memory":"200Mi"}}` | Expects input structure as per specification <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core> |
 | service.port | int | `443` | Expose port for WebHook controller |
 | service.type | string | `"ClusterIP"` | Service type to use |

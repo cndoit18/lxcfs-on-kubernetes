@@ -1,5 +1,5 @@
 # replicas -- Number of replicas for the controller
-replicas: 3
+replicas: 1
 
 image:
   # image.manager -- lxcfs-on-kubernetes controller image
