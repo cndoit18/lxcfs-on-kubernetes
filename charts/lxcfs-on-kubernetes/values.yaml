@@ -1,5 +1,5 @@
 # replicas -- Number of replicas for the controller
-replicas: 3
+replicas: 1
 
 image:
   # image.manager -- lxcfs-on-kubernetes controller image
@@ -45,6 +45,25 @@ resources:
   requests:
     cpu: 300m
     memory: 200Mi
+
+# affinity -- Affinity to add to the controller Pods
+affinity: {}
+#affinity:
+#  nodeAffinity:
+#    requiredDuringSchedulingIgnoredDuringExecution:
+#      nodeSelectorTerms:
+#        - matchExpressions:
+#            - key: node-role.kubernetes.io/control-plane
+#              operator: Exists
+#  podAntiAffinity:
+#    preferredDuringSchedulingIgnoredDuringExecution:
+#      - podAffinityTerm:
+#          labelSelector:
+#            matchLabels:
+#              app.kubernetes.io/instance: your-release-name
+#              app.kubernetes.io/compose: manager
+#          topologyKey: kubernetes.io/hostname
+#        weight: 100
 
 # podAnnotations -- Additional annotations to add to the controller Pods
 podAnnotations: {}

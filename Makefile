@@ -233,7 +233,8 @@ $(CHART_TEMPLATE_PATH)/deployment.yaml: kustomize kustomize $(wildcard config/he
 	echo '{{- /* $(DO_NOT_EDIT) */ -}}' > $(CHART_TEMPLATE_PATH)/deployment.yaml
 	$(KUSTOMIZE) build --reorder legacy config/helm/manager | \
 	$(KUSTOMIZE) cfg grep --annotate=false "kind=Deployment" | \
-	sed "s/'\({{[^}}]*}}\)'/\1/g" \
+	sed "s/'\({{[^}}]*}}\)'/\1/g" | \
+	sed "s/affinity: {}/affinity: {{ if .Values.affinity }}{{ toYaml .Values.affinity | nindent 8 }}{{ else }}{}{{ end }}/g" \
 		>> $(CHART_TEMPLATE_PATH)/deployment.yaml
 
 $(CHART_TEMPLATE_PATH)/daemonset.yaml: kustomize kustomize $(wildcard config/helm/manager/*) $(wildcard config/manager/*)
