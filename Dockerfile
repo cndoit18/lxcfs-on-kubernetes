@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:1.21 as builder
+FROM golang:1.24 as builder
 
 ENV UPX_VERSION 3.96
 RUN apt update \
