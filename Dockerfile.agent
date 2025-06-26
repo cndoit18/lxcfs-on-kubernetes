@@ -18,11 +18,11 @@ RUN apt-get update && apt-get install -y python3 python3-jinja2 python3-setuptoo
 
 ENV LXCFS 6.0.4
 RUN wget https://linuxcontainers.org/downloads/lxcfs/lxcfs-$LXCFS.tar.gz && \
-	mkdir /lxcfs && tar xzvf lxcfs-$LXCFS.tar.gz -C /lxcfs  --strip-components=1 && \
+	mkdir /lxcfs && tar xzvf lxcfs-$LXCFS.tar.gz -C /lxcfs && \
 	cd /lxcfs && \
 	meson setup -Dinit-script=systemd --prefix=/usr build/ && \
-	meson compile && \
-	meson install -C build
+	meson compile -C build/ && \
+	meson install -C build/
 
 FROM gcr.io/distroless/base@sha256:d8244d4756b5dc43f2c198bf4e37e6f8a017f13fdd7f6f64ec7ac7228d3b191e
 
