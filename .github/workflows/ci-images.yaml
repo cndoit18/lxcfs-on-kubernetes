@@ -34,9 +34,9 @@ jobs:
       matrix:
         image:
           - dockerfile: Dockerfile
-            suffix: ""
+            dockerimage: "lxcfs-manager"
           - dockerfile: Dockerfile.agent
-            suffix: "-agent"
+            dockerimage: "lxcfs-agent"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,10 +55,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}${{ matrix.image.suffix }}
+          images: ghcr.io/${{ github.repository }}${{ matrix.image.dockerimage }}
           flavor: latest=false
           tags: |
-            type=raw,value=canary,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=canary,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
             type=ref,event=pr
             type=semver,pattern={{raw}}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
