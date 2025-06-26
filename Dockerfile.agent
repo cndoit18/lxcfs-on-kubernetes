@@ -27,6 +27,7 @@ RUN wget https://linuxcontainers.org/downloads/lxcfs/lxcfs-$LXCFS.tar.gz && \
 FROM gcr.io/distroless/base@sha256:d8244d4756b5dc43f2c198bf4e37e6f8a017f13fdd7f6f64ec7ac7228d3b191e
 
 COPY --from=builder /usr/bin/lxcfs /usr/bin/lxcfs
+COPY --from=builder /usr/lib/x86_64-linux-gnu/lxcfs/liblxcfs.so /usr/lib/x86_64-linux-gnu/lxcfs/liblxcfs.so
 COPY --from=builder /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so.2
 COPY --from=builder /lib/x86_64-linux-gnu/libfuse.so.2 /lib/x86_64-linux-gnu/libfuse.so.2
 COPY --from=builder /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/libgcc_s.so.1
