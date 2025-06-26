@@ -1,4 +1,4 @@
-name: Images
+name: ci-images
 
 on:
   pull_request:
