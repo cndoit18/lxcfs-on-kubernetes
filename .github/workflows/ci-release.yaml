@@ -63,4 +63,4 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: build
+          args: build --snapshot
