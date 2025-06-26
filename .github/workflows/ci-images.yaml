@@ -1,0 +1,76 @@
+name: Images
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - "image/**"
+      - "*image"
+      - "image*"
+    tags:
+      - 'v*'
+    paths-ignore:
+      - .github/workflows/ci.yml
+      - .github/workflows/lock.yml
+      - ".github/ISSUE_TEMPLATE/**"
+      - "docs/**"
+      - "hack/**"
+      - "**.md"
+      - ".gitignore"
+      - "Makefile"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        image:
+          - dockerfile: Dockerfile
+            dockerimage: "lxcfs-manager"
+          - dockerfile: Dockerfile.agent
+            dockerimage: "lxcfs-agent"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}${{ matrix.image.dockerimage }}
+          flavor: latest=false
+          tags: |
+            type=raw,value=canary,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
+            type=ref,event=pr
+            type=semver,pattern={{raw}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.image.dockerfile }}
+          platforms: linux/amd64
+          push: false 
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
