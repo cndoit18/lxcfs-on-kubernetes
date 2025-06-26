@@ -43,4 +43,4 @@ jobs:
 
       - name: Generate Helm
         run: |
-          APP_VERSION=master make generate
+          APP_VERSION=v1.0.0 make generate
