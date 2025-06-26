@@ -36,7 +36,7 @@ jobs:
           - dockerfile: Dockerfile
             suffix: ""
           - dockerfile: Dockerfile.agent
-            suffix: "agent"
+            suffix: "-agent"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
