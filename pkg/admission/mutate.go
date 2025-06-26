@@ -63,7 +63,7 @@ func AddToManager(mgr manager.Manager, opts ...admissionOption) error {
 }
 
 type mutate struct {
-	decoder    *admission.Decoder
+	decoder    admission.Decoder
 	mutatePath string
 }
 
@@ -86,7 +86,7 @@ func (m *mutate) Handle(ctx context.Context, req admission.Request) admission.Re
 	return admission.PatchResponseFromRaw(req.Object.Raw, marshalled)
 }
 
-func (m *mutate) InjectDecoder(d *admission.Decoder) error {
+func (m *mutate) InjectDecoder(d admission.Decoder) error {
 	m.decoder = d
 
 	return nil
