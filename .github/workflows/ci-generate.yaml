@@ -1,0 +1,46 @@
+name: Generate 
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - "image/**"
+      - "*image"
+      - "image*"
+    tags:
+      - 'v*'
+    paths-ignore:
+      - .github/workflows/ci.yml
+      - .github/workflows/lock.yml
+      - ".github/ISSUE_TEMPLATE/**"
+      - "docs/**"
+      - "hack/**"
+      - "**.md"
+      - ".gitignore"
+      - "Makefile"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.3.0
+
+      - name: Generate Helm
+        run: |
+          APP_VERSION=v1.0.0 make generate
