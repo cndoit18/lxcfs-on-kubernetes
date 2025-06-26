@@ -48,13 +48,13 @@ jobs:
           password: ${{ secrets.GH_PAT }}
 
       - name: Check GoReleaser config
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
           args: check
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
