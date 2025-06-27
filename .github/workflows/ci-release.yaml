@@ -45,13 +45,6 @@ jobs:
         run: |
           APP_VERSION=v1.0.0 make generate
 
-      - name: Docker Login
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_PAT }}
-
       - name: Check GoReleaser config
         uses: goreleaser/goreleaser-action@v6
         with:
