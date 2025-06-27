@@ -26,12 +26,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	logr "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	k8sadmission "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 var (
-	log                   = logr.Log.WithName("mutate")
-	_   admission.Handler = &mutate{}
+	log                      = logr.Log.WithName("mutate")
+	_   k8sadmission.Handler = &mutate{}
 )
 
 type admissionOption func(m *mutate)
@@ -42,6 +42,11 @@ func WithMutatePath(mutatePath string) admissionOption {
 			mutatePath = mutatePath + "/"
 		}
 		m.mutatePath = mutatePath
+	}
+}
+func WithMutateDecoder(decoder k8sadmission.Decoder) admissionOption {
+	return func(m *mutate) {
+		m.decoder = decoder
 	}
 }
 
@@ -55,7 +60,7 @@ func AddToManager(mgr manager.Manager, opts ...admissionOption) error {
 		opt(m)
 	}
 
-	mgr.GetWebhookServer().Register("/mount-lxcfs", &admission.Webhook{
+	mgr.GetWebhookServer().Register("/mount-lxcfs", &k8sadmission.Webhook{
 		Handler: m,
 	})
 
@@ -63,15 +68,15 @@ func AddToManager(mgr manager.Manager, opts ...admissionOption) error {
 }
 
 type mutate struct {
-	decoder    admission.Decoder
+	decoder    k8sadmission.Decoder
 	mutatePath string
 }
 
-func (m *mutate) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (m *mutate) Handle(ctx context.Context, req k8sadmission.Request) k8sadmission.Response {
 	pod := &corev1.Pod{}
 	err := m.decoder.DecodeRaw(req.Object, pod)
 	if err != nil {
-		return admission.Errored(http.StatusInternalServerError, err)
+		return k8sadmission.Errored(http.StatusInternalServerError, err)
 	}
 
 	// TODO: Add filter conditions.
@@ -79,17 +84,11 @@ func (m *mutate) Handle(ctx context.Context, req admission.Request) admission.Re
 
 	marshalled, err := json.Marshal(pod)
 	if err != nil {
-		return admission.Errored(http.StatusInternalServerError, err)
+		return k8sadmission.Errored(http.StatusInternalServerError, err)
 	}
 
 	// Create the patch
-	return admission.PatchResponseFromRaw(req.Object.Raw, marshalled)
-}
-
-func (m *mutate) InjectDecoder(d admission.Decoder) error {
-	m.decoder = d
-
-	return nil
+	return k8sadmission.PatchResponseFromRaw(req.Object.Raw, marshalled)
 }
 
 func (m *mutate) ensurePodSpec(spec corev1.PodSpec) corev1.PodSpec {

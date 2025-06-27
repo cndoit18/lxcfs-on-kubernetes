@@ -22,7 +22,7 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/cndoit18/lxcfs-on-kubernetes/pkg/admission"
+	lxcfsadmission "github.com/cndoit18/lxcfs-on-kubernetes/pkg/admission"
 	"github.com/cndoit18/lxcfs-on-kubernetes/version"
 	klog "k8s.io/klog/v2"
 	klogr "k8s.io/klog/v2/klogr"
@@ -31,6 +31,7 @@ import (
 	logr "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	k8sadmission "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 var log = logr.Log.WithName("main")
@@ -90,8 +91,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := admission.AddToManager(mgr,
-		admission.WithMutatePath(*lxcfsPath),
+	if err := lxcfsadmission.AddToManager(mgr,
+		lxcfsadmission.WithMutatePath(*lxcfsPath),
+		lxcfsadmission.WithMutateDecoder(k8sadmission.NewDecoder(mgr.GetScheme())),
 	); err != nil {
 		log.Error(err, "Failed to add admission to manager")
 		os.Exit(1)
