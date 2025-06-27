@@ -11,28 +11,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM ubuntu:22.04 as builder
+FROM buildpack-deps:noble AS builder
 
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y python3 python3-jinja2 python3-setuptools meson wget gcc cmake libfuse2 libfuse-dev uuid-runtime systemd help2man pkg-config
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-ENV LXCFS 6.0.4
-RUN wget https://linuxcontainers.org/downloads/lxcfs/lxcfs-$LXCFS.tar.gz && \
-	mkdir /lxcfs && tar xzvf lxcfs-$LXCFS.tar.gz -C /lxcfs && \
-	cd /lxcfs/lxcfs-$LXCFS && \
-	meson setup -Dinit-script=systemd --prefix=/usr build/ && \
-	meson compile -C build/ && \
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update; \
+ 	apt-get install -y --no-install-recommends meson python3-jinja2 libfuse3-dev help2man systemd
+
+WORKDIR /lxcfs
+ARG LXCFS=6.0.4
+RUN wget -q "https://linuxcontainers.org/downloads/lxcfs/lxcfs-$LXCFS.tar.gz" -O - | \
+		tar -xzf - --strip-components=1
+RUN meson setup -Dinit-script=systemd --prefix=/usr build/; \
+	meson compile -C build/; \
 	meson install -C build/
 
-FROM gcr.io/distroless/base@sha256:d8244d4756b5dc43f2c198bf4e37e6f8a017f13fdd7f6f64ec7ac7228d3b191e
+WORKDIR /rootfs
+RUN ARCH="$(uname -m)"; \
+	mkdir -p "usr/bin" "usr/lib/$ARCH-linux-gnu/lxcfs" "lib/$ARCH-linux-gnu" "lib64"; \
+    cp "/usr/bin/lxcfs" "usr/bin/"; \
+	cp "/usr/lib/$ARCH-linux-gnu/lxcfs/liblxcfs.so" "usr/lib/$ARCH-linux-gnu/lxcfs/"; \
+	cp "/lib/$ARCH-linux-gnu/libdl.so.2" "lib/$ARCH-linux-gnu/"; \
+	cp "/lib/$ARCH-linux-gnu/libfuse3.so.3" "lib/$ARCH-linux-gnu/"; \
+	cp "/lib/$ARCH-linux-gnu/libgcc_s.so.1" "lib/$ARCH-linux-gnu/"; \
+	cp "/lib/$ARCH-linux-gnu/libpthread.so.0" "lib/$ARCH-linux-gnu/"; \
+	cp "/lib/$ARCH-linux-gnu/libc.so.6" "lib/$ARCH-linux-gnu/"; \
+	cp "/lib/$ARCH-linux-gnu/ld-linux-${ARCH//_/-}.so."* "lib64/"
 
-COPY --from=builder /usr/bin/lxcfs /usr/bin/lxcfs
-COPY --from=builder /usr/lib/x86_64-linux-gnu/lxcfs/liblxcfs.so /usr/lib/x86_64-linux-gnu/lxcfs/liblxcfs.so
-COPY --from=builder /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so.2
-COPY --from=builder /lib/x86_64-linux-gnu/libfuse.so.2 /lib/x86_64-linux-gnu/libfuse.so.2
-COPY --from=builder /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/libgcc_s.so.1
-COPY --from=builder /lib/x86_64-linux-gnu/libpthread.so.0 /lib/x86_64-linux-gnu/libpthread.so.0
-COPY --from=builder /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
-COPY --from=builder /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2
+FROM gcr.io/distroless/base@sha256:201ef9125ff3f55fda8e0697eff0b3ce9078366503ef066653635a3ac3ed9c26
+
+COPY --from=builder /rootfs/ /
 
 ENTRYPOINT [ "lxcfs" ]

@@ -11,32 +11,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM golang:1.24 as builder
+FROM golang:1.24.4 AS builder
 
-ENV UPX_VERSION 3.96
-RUN apt update \
-    && apt install -y xz-utils \
-    && wget -c https://github.com/upx/upx/releases/download/v$UPX_VERSION/upx-$UPX_VERSION-$(go env GOARCH)_$(uname -s | tr '[:upper:]' '[:lower:]').tar.xz -O - | \
-    tar xJf - --strip-components 1 upx-$UPX_VERSION-$(go env GOARCH)_$(uname -s | tr '[:upper:]' '[:lower:]')/upx \
-    && mv ./upx /usr/bin/upx
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends xz-utils
+
+ARG UPX_VERSION=5.0.1
+RUN wget -q "https://github.com/upx/upx/releases/download/v$UPX_VERSION/upx-$UPX_VERSION-$(go env GOARCH)_linux.tar.xz" -O - | \
+        tar -xJvf - -C /usr/bin --strip-components=1 "upx-$UPX_VERSION-$(go env GOARCH)_linux/upx"
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY go.mod go.sum ./
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
 COPY . .
 
-ARG GOLDFLAGS
-RUN CGO_ENABLED=0 go build -ldflags="${GOLDFLAGS}" -a -o manager cmd/manager/main.go \
-    && upx -9 manager
+ARG GOLDFLAGS=
+ARG CGO_ENABLED=0
+RUN go build -ldflags="${GOLDFLAGS}" -a -o manager cmd/manager/main.go
+
+RUN upx -9 manager
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/base@sha256:d8244d4756b5dc43f2c198bf4e37e6f8a017f13fdd7f6f64ec7ac7228d3b191e
+FROM gcr.io/distroless/base@sha256:201ef9125ff3f55fda8e0697eff0b3ce9078366503ef066653635a3ac3ed9c26
 WORKDIR /
 COPY --from=builder /workspace/manager .
 

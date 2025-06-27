@@ -37,3 +37,8 @@ config/webhook/manifests.yaml
 
 ## goreleaser
 dist/
+
+# Docker-related files
+.dockerignore
+Dockerfile
+Dockerfile.agent
