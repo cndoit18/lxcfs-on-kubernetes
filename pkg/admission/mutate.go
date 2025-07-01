@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -119,7 +120,7 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 		"lxcfs-proc-loadavg":                  "/proc/loadavg",
 		"lxcfs-sys-devices-system-cpu":        "/sys/devices/system/cpu",
 		"lxcfs-sys-devices-system-cpu-online": "/sys/devices/system/cpu/online",
-		"lxcfs-root":                          m.mutatePath,
+		"lxcfs-root-parent-dir":               filepath.Dir(m.mutatePath),
 	}
 	for _, v := range volumeMounts {
 		if _, ok := mounts[v.Name]; !ok {
@@ -195,9 +196,9 @@ func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
 				Path: m.mutatePath + "sys/devices/system/cpu/online",
 			},
 		},
-		"lxcfs-root": {
+		"lxcfs-root-parent-dir": {
 			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath,
+				Path: filepath.Dir(m.mutatePath),
 			},
 		},
 	}

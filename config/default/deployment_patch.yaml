@@ -12,4 +12,4 @@ spec:
       containers:
         - name: manager
           args:
-            - --lxcfs-path=/var/lib/lxcfs
+            - --lxcfs-path=/var/lib/lxc/lxcfs
