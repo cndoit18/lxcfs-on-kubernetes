@@ -119,6 +119,7 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 		"lxcfs-proc-loadavg":                  "/proc/loadavg",
 		"lxcfs-sys-devices-system-cpu":        "/sys/devices/system/cpu",
 		"lxcfs-sys-devices-system-cpu-online": "/sys/devices/system/cpu/online",
+		"lxcfs-root":                          m.mutatePath,
 	}
 	for _, v := range volumeMounts {
 		if _, ok := mounts[v.Name]; !ok {
@@ -129,12 +130,14 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 
 	result := make([]corev1.VolumeMount, 0, len(volumeMounts)+len(mounts))
 	result = append(result, volumeMounts...)
+	mountPropagationHostToContainer := corev1.MountPropagationHostToContainer
 	for k, v := range mounts {
 		result = append(result,
 			corev1.VolumeMount{
-				Name:      k,
-				MountPath: v,
-				ReadOnly:  true,
+				Name:             k,
+				MountPath:        v,
+				ReadOnly:         true,
+				MountPropagation: &mountPropagationHostToContainer,
 			})
 	}
 
@@ -190,6 +193,11 @@ func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
 		"lxcfs-sys-devices-system-cpu-online": {
 			HostPath: &corev1.HostPathVolumeSource{
 				Path: m.mutatePath + "sys/devices/system/cpu/online",
+			},
+		},
+		"lxcfs-root": {
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: m.mutatePath,
 			},
 		},
 	}
