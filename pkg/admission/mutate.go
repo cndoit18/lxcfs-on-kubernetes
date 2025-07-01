@@ -120,7 +120,7 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 		"lxcfs-proc-loadavg":                  "/proc/loadavg",
 		"lxcfs-sys-devices-system-cpu":        "/sys/devices/system/cpu",
 		"lxcfs-sys-devices-system-cpu-online": "/sys/devices/system/cpu/online",
-		"lxcfs-root-parent-dir":               filepath.Dir(m.mutatePath),
+		"lxcfs-root-parent-dir":               filepath.Dir(strings.TrimSuffix(m.mutatePath, "/")),
 	}
 	for _, v := range volumeMounts {
 		if _, ok := mounts[v.Name]; !ok {
@@ -198,7 +198,7 @@ func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
 		},
 		"lxcfs-root-parent-dir": {
 			HostPath: &corev1.HostPathVolumeSource{
-				Path: filepath.Dir(m.mutatePath),
+				Path: filepath.Dir(strings.TrimSuffix(m.mutatePath, "/")),
 			},
 		},
 	}
