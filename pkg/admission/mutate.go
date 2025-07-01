@@ -111,16 +111,15 @@ func (m *mutate) ensureContainer(cs []corev1.Container) []corev1.Container {
 
 func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.VolumeMount {
 	mounts := map[string]string{
-		"lxcfs-proc-cpuinfo":                  "/proc/cpuinfo",
-		"lxcfs-proc-diskstats":                "/proc/diskstats",
-		"lxcfs-proc-meminfo":                  "/proc/meminfo",
-		"lxcfs-proc-stat":                     "/proc/stat",
-		"lxcfs-proc-swaps":                    "/proc/swaps",
-		"lxcfs-proc-uptime":                   "/proc/uptime",
-		"lxcfs-proc-loadavg":                  "/proc/loadavg",
-		"lxcfs-sys-devices-system-cpu":        "/sys/devices/system/cpu",
-		"lxcfs-sys-devices-system-cpu-online": "/sys/devices/system/cpu/online",
-		"lxcfs-root-parent-dir":               filepath.Dir(strings.TrimSuffix(m.mutatePath, "/")),
+		"lxcfs-proc-cpuinfo":           "/proc/cpuinfo",
+		"lxcfs-proc-diskstats":         "/proc/diskstats",
+		"lxcfs-proc-meminfo":           "/proc/meminfo",
+		"lxcfs-proc-stat":              "/proc/stat",
+		"lxcfs-proc-swaps":             "/proc/swaps",
+		"lxcfs-proc-uptime":            "/proc/uptime",
+		"lxcfs-proc-loadavg":           "/proc/loadavg",
+		"lxcfs-sys-devices-system-cpu": "/sys/devices/system/cpu",
+		"lxcfs-root-parent-dir":        filepath.Dir(strings.TrimSuffix(m.mutatePath, "/")),
 	}
 	for _, v := range volumeMounts {
 		if _, ok := mounts[v.Name]; !ok {
@@ -189,11 +188,6 @@ func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
 		"lxcfs-sys-devices-system-cpu": {
 			HostPath: &corev1.HostPathVolumeSource{
 				Path: m.mutatePath + "sys/devices/system/cpu",
-			},
-		},
-		"lxcfs-sys-devices-system-cpu-online": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "sys/devices/system/cpu/online",
 			},
 		},
 		"lxcfs-root-parent-dir": {
