@@ -3,13 +3,12 @@
 builds:
   - skip: true
 
-
 dockers:
   - image_templates:
       - "ghcr.io/cndoit18/lxcfs-agent:{{ .Tag }}"
       - "ghcr.io/cndoit18/lxcfs-agent:latest"
 
-    skip_push: false 
+    skip_push: false
 
     dockerfile: Dockerfile.agent
 
@@ -19,35 +18,34 @@ dockers:
 
     build_flag_templates:
       - --build-arg=GOLDFLAGS=-X 'github.com/cndoit18/lxcfs-on-kubernetes/version.AppVersion={{ .Version }}' -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.GitCommit={{ .FullCommit }}'
-    
-    skip_push: false
-    
-    dockerfile: Dockerfile
-    
-    extra_files:
-    - cmd/
-    - pkg/
-    - version/
-    - go.mod
-    - go.sum
 
+    skip_push: false
+
+    dockerfile: Dockerfile
+
+    extra_files:
+      - cmd/
+      - pkg/
+      - version/
+      - go.mod
+      - go.sum
+      - scripts/
 
 changelog:
   sort: asc
 
   filters:
     exclude:
-      - '^docs:'
+      - "^docs:"
       - typo
       - (?i)foo
 
-
 signs:
-- artifacts: checksum
+  - artifacts: checksum
 
 release:
   draft: false
   prerelease: auto
 
   extra_files:
-  - glob: charts/*.tgz
+    - glob: charts/*.tgz
