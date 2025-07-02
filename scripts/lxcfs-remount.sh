@@ -1,4 +1,5 @@
-#!/bin/bash +x
+#!/usr/bin/env bash
+set -euxo pipefail
 LXCFS="$1"
 containers=$(crictl ps | grep -v pause | grep -v calico | grep -v cilium | awk '{print $1}' | grep -v CONTAINER)
 for container in $containers; do
