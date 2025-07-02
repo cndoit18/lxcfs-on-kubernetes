@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euxo pipefail
+if [[ -z "$1" ]]; then
+  echo "Usage: $0 <lxcfs-mount-path>" >&2
+  exit 1
+fi
 LXCFS="$1"
 containers=$(crictl ps | grep -v pause | grep -v calico | grep -v cilium | awk '{print $1}' | grep -v CONTAINER)
 for container in $containers; do
