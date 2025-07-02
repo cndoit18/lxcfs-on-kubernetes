@@ -38,7 +38,7 @@ import (
 var log = logr.Log.WithName("main")
 
 func init() {
-	logr.SetLogger(textlogger.NewLogger(nil))
+	logr.SetLogger(textlogger.NewLogger(textlogger.NewConfig()))
 }
 
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
