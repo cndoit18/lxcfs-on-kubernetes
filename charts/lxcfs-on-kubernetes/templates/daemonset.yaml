@@ -16,14 +16,26 @@ spec:
     spec:
       containers:
       - args: {{- include "chart.lxcfs.args" . | nindent 8 }}
-        image: {{.Values.image.agent}}
+        image: {{ .Values.image.agent }}
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - sh
+                - -c
+                - "lxcfs-remount.sh {{ trimSuffix "/" .Values.lxcfs.mountPath }} || true"
         imagePullPolicy: {{ .Values.pullPolicy | quote }}
         name: agent
         resources: {{- toYaml .Values.lxcfs.resources | nindent 10 }}
         securityContext:
           privileged: true
         volumeMounts:
-        - mountPath: {{.Values.lxcfs.mountPath}}
+        - name: cri-socket
+          mountPath: {{ .Values.lxcfs.configMaps.crictlConfig.endpoint }}
+        - name: crictl-config
+          mountPath: /etc/crictl.yaml
+          subPath: crictl.yaml
+        - mountPath: {{ .Values.lxcfs.mountPath }}
           mountPropagation: Bidirectional
           name: lxcfs
         - mountPath: /sys/fs/cgroup
@@ -31,10 +43,17 @@ spec:
       hostPID: true
       volumes:
       - hostPath:
-          path: {{.Values.lxcfs.mountPath}}
+          path: {{ .Values.lxcfs.mountPath }}
           type: DirectoryOrCreate
         name: lxcfs
       - hostPath:
           path: /sys/fs/cgroup
         name: cgroup
+      - name: cri-socket
+        hostPath:
+          path: {{ .Values.lxcfs.configMaps.crictlConfig.endpoint }}
+          type: Socket
+      - name: crictl-config
+        configMap:
+          name: lxcfs-crictl-config
 {{- end -}}

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lxcfs-crictl-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+data:
+  crictl.yaml: |
+    runtime-endpoint: unix://{{ .Values.lxcfs.configMaps.crictlConfig.endpoint }}
+    image-endpoint: unix://{{ .Values.lxcfs.configMaps.crictlConfig.endpoint }}
+    timeout: 10
+    debug: false
