@@ -69,6 +69,11 @@ affinity: {}
 podAnnotations: {}
 
 lxcfs:
+  # lxcfs.configMaps -- ConfigMaps to be created for lxcfs
+  configMaps:
+    crictlConfig:
+      # crictlConfig.endpoint -- The endpoint of the CRI runtime
+      endpoint: /run/containerd/containerd.sock
   # lxcfs.useDaemonset -- Installing lxcfs with daemonset
   useDaemonset: true
   # lxcfs.mountPath -- Specify the mount path of lxcfs on the host
