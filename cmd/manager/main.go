@@ -21,23 +21,24 @@ import (
 	"os"
 
 	"github.com/spf13/pflag"
-
-	lxcfsadmission "github.com/cndoit18/lxcfs-on-kubernetes/pkg/admission"
-	"github.com/cndoit18/lxcfs-on-kubernetes/version"
 	klog "k8s.io/klog/v2"
-	klogr "k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/textlogger"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logr "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	k8sadmission "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	lxcfsadmission "github.com/cndoit18/lxcfs-on-kubernetes/pkg/admission"
+	"github.com/cndoit18/lxcfs-on-kubernetes/pkg/utils"
+	"github.com/cndoit18/lxcfs-on-kubernetes/version"
 )
 
 var log = logr.Log.WithName("main")
 
 func init() {
-	logr.SetLogger(klogr.New())
+	logr.SetLogger(textlogger.NewLogger(nil))
 }
 
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
@@ -71,6 +72,11 @@ func main() {
 	cfg, err := config.GetConfig()
 	if err != nil {
 		log.Error(err, "Failed to get configuration.")
+		os.Exit(1)
+	}
+
+	if err := utils.EnsureLxcfsParentDir(*lxcfsPath); err != nil {
+		log.Error(err, "Failed to ensure lxcfs parent directory", "lxcfsPath", *lxcfsPath)
 		os.Exit(1)
 	}
 
