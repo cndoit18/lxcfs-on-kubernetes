@@ -2,6 +2,27 @@ apiVersion: v1
 entries:
   lxcfs-on-kubernetes:
   - apiVersion: v2
+    appVersion: 0.2.1-rc4
+    created: "2025-07-02T03:02:26.840047769Z"
+    description: '`LXCFS` is a small FUSE filesystem written with the intention of
+      making Linux containers feel more like a virtual machine.'
+    digest: d166580de6b15a99136c7f9804c3444385a5d7c7bfe73b568a73f87c0f9e7ff5
+    keywords:
+    - lxcfs
+    kubeVersion: '>= 1.16.0-0'
+    maintainers:
+    - email: cndoit18@outlook.com
+      name: cndoit18
+      url: https://github.com/cndoit18
+    name: lxcfs-on-kubernetes
+    sources:
+    - https://github.com/cndoit18/lxcfs-on-kubernetes
+    - https://github.com/lxc/lxcfs
+    type: application
+    urls:
+    - https://github.com/cndoit18/lxcfs-on-kubernetes/releases/download/v0.2.1-rc4/lxcfs-on-kubernetes-0.2.1-rc4.tgz
+    version: 0.2.1-rc4
+  - apiVersion: v2
     appVersion: 0.2.1-rc3
     created: "2025-07-01T12:59:35.377157546Z"
     description: '`LXCFS` is a small FUSE filesystem written with the intention of
@@ -253,4 +274,4 @@ entries:
     urls:
     - https://github.com/cndoit18/lxcfs-on-kubernetes/releases/download/v0.1.0/lxcfs-on-kubernetes-0.1.0.tgz
     version: 0.1.0
-generated: "2025-07-01T12:59:35.377232868Z"
+generated: "2025-07-02T03:02:26.840204402Z"
