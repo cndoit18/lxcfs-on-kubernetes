@@ -11,6 +11,8 @@ dockers:
     skip_push: false
 
     dockerfile: Dockerfile.agent
+    extra_files:
+      - scripts/
 
   - image_templates:
       - "ghcr.io/cndoit18/lxcfs-manager:{{ .Tag }}"
