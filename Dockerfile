@@ -21,7 +21,7 @@ RUN apt-get update; \
 
 ARG UPX_VERSION=5.0.1
 RUN wget -q "https://github.com/upx/upx/releases/download/v$UPX_VERSION/upx-$UPX_VERSION-$(go env GOARCH)_linux.tar.xz" -O - | \
-        tar -xJvf - -C /usr/bin --strip-components=1 "upx-$UPX_VERSION-$(go env GOARCH)_linux/upx"
+    tar -xJvf - -C /usr/bin --strip-components=1 "upx-$UPX_VERSION-$(go env GOARCH)_linux/upx"
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -38,9 +38,8 @@ RUN go build -ldflags="${GOLDFLAGS}" -a -o manager cmd/manager/main.go
 
 RUN upx -9 manager
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/base@sha256:201ef9125ff3f55fda8e0697eff0b3ce9078366503ef066653635a3ac3ed9c26
+# alpine:3.22.0
+FROM alpine@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 
 WORKDIR /
 COPY --from=builder /workspace/manager .
 
