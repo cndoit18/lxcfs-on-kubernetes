@@ -13,7 +13,7 @@ const (
 func EnsureLxcfsParentDir(path string) error {
 	lxcDir := filepath.Dir(strings.TrimRight(path, "/"))
 	if !strings.HasSuffix(lxcDir, defaultLxcfsParentDir) {
-		return fmt.Errorf("lxcfs path %s is not valid, it's parent directory should be 'lxc'", path)
+		return fmt.Errorf("lxcfs path %s is not valid, it's parent directory should be '%s'", path, defaultLxcfsParentDir)
 	}
 	return nil
 }
