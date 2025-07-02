@@ -47,5 +47,6 @@ FROM gcr.io/distroless/base@sha256:201ef9125ff3f55fda8e0697eff0b3ce9078366503ef0
 
 COPY --from=builder /rootfs/ /
 COPY --from=builder /opt/tools/crictl /usr/local/bin/crictl
+COPY scripts/lxcfs-remount.sh /usr/local/bin/lxcfs-remount.sh
 
 ENTRYPOINT [ "lxcfs" ]
