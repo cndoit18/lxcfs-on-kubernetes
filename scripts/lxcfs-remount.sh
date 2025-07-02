@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euxo pipefail
+#!/usr/bin/env sh
+set -exo pipefail
 if [[ -z "$1" ]]; then
   echo "Usage: $0 <lxcfs-mount-path>" >&2
   exit 1
