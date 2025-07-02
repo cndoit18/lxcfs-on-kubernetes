@@ -29,7 +29,7 @@ RUN meson setup -Dinit-script=systemd --prefix=/usr build/; \
 
 WORKDIR /opt/tools 
 ARG CRICTLVERSION="1.33.0"
-RUN wget -q "https://github.com/kubernetes-sigs/cri-tools/releases/download/v$CRICTLVERSION/crictl-v$CRICTLVERSION-linux-amd64.tar.gz" && tar -xzf "crictl-$VERSION-linux-amd64.tar.gz"
+RUN wget -q "https://github.com/kubernetes-sigs/cri-tools/releases/download/v$CRICTLVERSION/crictl-v$CRICTLVERSION-linux-amd64.tar.gz" && tar -xzf "crictl-v$CRICTLVERSION-linux-amd64.tar.gz"
 
 WORKDIR /rootfs
 RUN ARCH="$(uname -m)"; \
