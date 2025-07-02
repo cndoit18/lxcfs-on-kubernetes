@@ -17,20 +17,24 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update; \
- 	apt-get install -y --no-install-recommends meson python3-jinja2 libfuse3-dev help2man systemd
+	apt-get install -y --no-install-recommends meson python3-jinja2 libfuse3-dev help2man systemd
 
 WORKDIR /lxcfs
 ARG LXCFS=6.0.4
 RUN wget -q "https://linuxcontainers.org/downloads/lxcfs/lxcfs-$LXCFS.tar.gz" -O - | \
-		tar -xzf - --strip-components=1
+	tar -xzf - --strip-components=1
 RUN meson setup -Dinit-script=systemd --prefix=/usr build/; \
 	meson compile -C build/; \
 	meson install -C build/
 
+WORKDIR /opt/tools 
+ARG CRICTLVERSION="1.33.0"
+RUN wget -q "https://github.com/kubernetes-sigs/cri-tools/releases/download/v$CRICTLVERSION/crictl-v$CRICTLVERSION-linux-amd64.tar.gz" && tar -xzf "crictl-v$CRICTLVERSION-linux-amd64.tar.gz"
+
 WORKDIR /rootfs
 RUN ARCH="$(uname -m)"; \
 	mkdir -p "usr/bin" "usr/lib/$ARCH-linux-gnu/lxcfs" "lib/$ARCH-linux-gnu" "lib64"; \
-    cp "/usr/bin/lxcfs" "usr/bin/"; \
+	cp "/usr/bin/lxcfs" "usr/bin/"; \
 	cp "/usr/lib/$ARCH-linux-gnu/lxcfs/liblxcfs.so" "usr/lib/$ARCH-linux-gnu/lxcfs/"; \
 	cp "/lib/$ARCH-linux-gnu/libdl.so.2" "lib/$ARCH-linux-gnu/"; \
 	cp "/lib/$ARCH-linux-gnu/libfuse3.so.3" "lib/$ARCH-linux-gnu/"; \
@@ -42,5 +46,6 @@ RUN ARCH="$(uname -m)"; \
 FROM gcr.io/distroless/base@sha256:201ef9125ff3f55fda8e0697eff0b3ce9078366503ef066653635a3ac3ed9c26
 
 COPY --from=builder /rootfs/ /
+COPY --from=builder /opt/tools/crictl /usr/local/bin/crictl
 
 ENTRYPOINT [ "lxcfs" ]

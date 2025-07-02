@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/ptr"
 	logr "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	k8sadmission "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -119,7 +120,7 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 		"lxcfs-proc-uptime":            "/proc/uptime",
 		"lxcfs-proc-loadavg":           "/proc/loadavg",
 		"lxcfs-sys-devices-system-cpu": "/sys/devices/system/cpu",
-		"lxcfs-root-parent-dir":        filepath.Dir(strings.TrimSuffix(m.mutatePath, "/")),
+		"lxcfs-root-parent-dir":        filepath.Dir(strings.TrimRight(m.mutatePath, "/")),
 	}
 	for _, v := range volumeMounts {
 		if _, ok := mounts[v.Name]; !ok {
@@ -127,17 +128,25 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 		}
 		delete(mounts, v.Name)
 	}
+	mountPropagationMode := func(mountName string) *corev1.MountPropagationMode {
+		config := map[string]*corev1.MountPropagationMode{
+			"lxcfs-root-parent-dir": ptr.To(corev1.MountPropagationHostToContainer),
+		}
+		if _, ok := config[mountName]; ok {
+			return config[mountName]
+		}
+		return ptr.To(corev1.MountPropagationNone)
+	}
 
 	result := make([]corev1.VolumeMount, 0, len(volumeMounts)+len(mounts))
 	result = append(result, volumeMounts...)
-	mountPropagationHostToContainer := corev1.MountPropagationHostToContainer
 	for k, v := range mounts {
 		result = append(result,
 			corev1.VolumeMount{
 				Name:             k,
 				MountPath:        v,
 				ReadOnly:         true,
-				MountPropagation: &mountPropagationHostToContainer,
+				MountPropagation: mountPropagationMode(k),
 			})
 	}
 
@@ -192,7 +201,7 @@ func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
 		},
 		"lxcfs-root-parent-dir": {
 			HostPath: &corev1.HostPathVolumeSource{
-				Path: filepath.Dir(strings.TrimSuffix(m.mutatePath, "/")),
+				Path: filepath.Dir(strings.TrimRight(m.mutatePath, "/")),
 			},
 		},
 	}
