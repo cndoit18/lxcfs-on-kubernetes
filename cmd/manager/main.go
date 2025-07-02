@@ -50,7 +50,7 @@ func main() {
 		leaderElection          = flag.Bool("leader-election", false, "LeaderElection determines whether or not to use leader election when starting the manager.")
 		leaderElectionNamespace = flag.String("leader-election-namespace", "default", "The leader election namespace.")
 		leaderElectionID        = flag.String("leader-election-id", "lxcfs-on-kubernetes-leader-election", "The leader election id.")
-		lxcfsPath               = flag.String("lxcfs-path", "/var/lib/lxc/lxcfs", "Path for lxcfs mounts.")
+		lxcfsPath               = flag.String("lxcfs-path", "/var/lib/lxcfs-on-k8s/lxcfs", "Path for lxcfs mounts.")
 	)
 
 	// set logging

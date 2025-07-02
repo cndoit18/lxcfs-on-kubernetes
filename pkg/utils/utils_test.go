@@ -12,12 +12,12 @@ func TestEnsureLxcfsParentDir(t *testing.T) {
 	}{
 		{
 			name:    "valid path with trailing slash",
-			path:    "/var/lib/lxc/test/",
+			path:    "/var/lib/lxcfs-on-k8s/test/",
 			wantErr: false,
 		},
 		{
 			name:    "valid path without trailing slash",
-			path:    "/var/lib/lxc/test",
+			path:    "/var/lib/lxcfs-on-k8s/test",
 			wantErr: false,
 		},
 		{
@@ -32,12 +32,12 @@ func TestEnsureLxcfsParentDir(t *testing.T) {
 		},
 		{
 			name:    "parent directory is lxc at root",
-			path:    "/lxc/test",
+			path:    "/lxcfs-on-k8s/test",
 			wantErr: false,
 		},
 		{
-			name:    "path is just /lxc",
-			path:    "/lxc",
+			name:    "path is just /lxcfs-on-k8s",
+			path:    "/lxcfs-on-k8s",
 			wantErr: true,
 		},
 		{
@@ -47,7 +47,7 @@ func TestEnsureLxcfsParentDir(t *testing.T) {
 		},
 		{
 			name:    "path with multiple trailing slashes",
-			path:    "/var/lib/lxc/test///",
+			path:    "/var/lib/lxcfs-on-k8s/test///",
 			wantErr: false,
 		},
 	}
