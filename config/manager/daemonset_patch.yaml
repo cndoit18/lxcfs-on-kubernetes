@@ -15,13 +15,13 @@ spec:
       containers:
         - name: agent
           args:
-            - "/var/lib/lxc/lxcfs"
+            - "/var/lib/lxcfs-on-k8s/lxcfs"
           volumeMounts:
             - name: lxcfs
-              mountPath: /var/lib/lxc/lxcfs
+              mountPath: /var/lib/lxcfs-on-k8s/lxcfs
               mountPropagation: Bidirectional
       volumes:
         - name: lxcfs
           hostPath:
-            path: /var/lib/lxc/lxcfs
+            path: /var/lib/lxcfs-on-k8s/lxcfs
             type: DirectoryOrCreate
