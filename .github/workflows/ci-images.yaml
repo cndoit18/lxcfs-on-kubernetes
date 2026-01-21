@@ -55,7 +55,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}${{ matrix.image.dockerimage }}
+          images: ghcr.io/${{ github.repository }}/${{ matrix.image.dockerimage }}
           flavor: latest=false
           tags: |
             type=raw,value=canary,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
@@ -68,7 +68,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.image.dockerfile }}
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: false 
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
