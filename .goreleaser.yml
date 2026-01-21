@@ -8,6 +8,11 @@ dockers:
       - "ghcr.io/cndoit18/lxcfs-agent:{{ .Tag }}"
       - "ghcr.io/cndoit18/lxcfs-agent:latest"
 
+    use: buildx
+
+    build_flag_templates:
+      - --platform=linux/amd64,linux/arm64
+
     skip_push: false
 
     dockerfile: Dockerfile.agent
@@ -18,7 +23,10 @@ dockers:
       - "ghcr.io/cndoit18/lxcfs-manager:{{ .Tag }}"
       - "ghcr.io/cndoit18/lxcfs-manager:latest"
 
+    use: buildx
+
     build_flag_templates:
+      - --platform=linux/amd64,linux/arm64
       - --build-arg=GOLDFLAGS=-X 'github.com/cndoit18/lxcfs-on-kubernetes/version.AppVersion={{ .Version }}' -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.GitCommit={{ .FullCommit }}'
 
     skip_push: false

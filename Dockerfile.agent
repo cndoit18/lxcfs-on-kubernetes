@@ -27,13 +27,20 @@ RUN meson setup -Dinit-script=systemd --prefix=/usr build/; \
 	meson compile -C build/; \
 	meson install -C build/
 
-WORKDIR /opt/tools 
+WORKDIR /opt/tools
 ARG CRICTLVERSION="1.33.0"
-RUN wget -q "https://github.com/kubernetes-sigs/cri-tools/releases/download/v$CRICTLVERSION/crictl-v$CRICTLVERSION-linux-amd64.tar.gz" && tar -xzf "crictl-v$CRICTLVERSION-linux-amd64.tar.gz"
+ARG TARGETARCH
+RUN case "${TARGETARCH}" in \
+		amd64|arm64) CRICTL_ARCH="${TARGETARCH}" ;; \
+		*) echo "Unsupported TARGETARCH=${TARGETARCH} (expected amd64 or arm64)" >&2; exit 1 ;; \
+	esac; \
+	wget -q "https://github.com/kubernetes-sigs/cri-tools/releases/download/v${CRICTLVERSION}/crictl-v${CRICTLVERSION}-linux-${CRICTL_ARCH}.tar.gz" -O crictl.tgz; \
+	tar -xzf crictl.tgz; \
+	rm -f crictl.tgz
 
 WORKDIR /rootfs
 RUN ARCH="$(uname -m)"; \
-	mkdir -p "usr/bin" "usr/lib/$ARCH-linux-gnu/lxcfs" "lib/$ARCH-linux-gnu" "lib64"; \
+	mkdir -p "usr/bin" "usr/lib/$ARCH-linux-gnu/lxcfs" "lib" "lib/$ARCH-linux-gnu" "lib64"; \
 	cp "/usr/bin/lxcfs" "usr/bin/"; \
 	cp "/usr/lib/$ARCH-linux-gnu/lxcfs/liblxcfs.so" "usr/lib/$ARCH-linux-gnu/lxcfs/"; \
 	cp "/lib/$ARCH-linux-gnu/libdl.so.2" "lib/$ARCH-linux-gnu/"; \
@@ -41,10 +48,14 @@ RUN ARCH="$(uname -m)"; \
 	cp "/lib/$ARCH-linux-gnu/libgcc_s.so.1" "lib/$ARCH-linux-gnu/"; \
 	cp "/lib/$ARCH-linux-gnu/libpthread.so.0" "lib/$ARCH-linux-gnu/"; \
 	cp "/lib/$ARCH-linux-gnu/libc.so.6" "lib/$ARCH-linux-gnu/"; \
-	cp "/lib/$ARCH-linux-gnu/ld-linux-${ARCH//_/-}.so."* "lib64/"
+	if [ "$ARCH" = "aarch64" ]; then \
+		cp "/lib/$ARCH-linux-gnu/ld-linux-aarch64.so.1" "lib/ld-linux-aarch64.so.1"; \
+	else \
+		cp "/lib/$ARCH-linux-gnu/ld-linux-${ARCH//_/-}.so."* "lib64/"; \
+	fi
 
-# alpine:3.22.0
-FROM alpine@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 
+# alpine:3.22.0 (use tag so buildx can resolve the correct multi-arch manifest)
+FROM alpine:3.22.0
 
 COPY --from=builder /rootfs/ /
 COPY --from=builder /opt/tools/crictl /usr/local/bin/crictl
