@@ -12,8 +12,11 @@ dockers:
 
     build_flag_templates:
       - --platform=linux/amd64,linux/arm64
+      - --push
 
-    skip_push: false
+    # buildx multi-arch outputs are manifest lists; they must be pushed to a registry
+    # (cannot be exported/loaded into the local docker daemon).
+    skip_push: true
 
     dockerfile: Dockerfile.agent
     extra_files:
@@ -27,9 +30,12 @@ dockers:
 
     build_flag_templates:
       - --platform=linux/amd64,linux/arm64
+      - --push
       - --build-arg=GOLDFLAGS=-X 'github.com/cndoit18/lxcfs-on-kubernetes/version.AppVersion={{ .Version }}' -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.GitCommit={{ .FullCommit }}'
 
-    skip_push: false
+    # buildx multi-arch outputs are manifest lists; they must be pushed to a registry
+    # (cannot be exported/loaded into the local docker daemon).
+    skip_push: true
 
     dockerfile: Dockerfile
 
