@@ -1,6 +1,6 @@
 module github.com/cndoit18/lxcfs-on-kubernetes
 
-go 1.24.4
+go 1.25
 
 require (
 	github.com/spf13/pflag v1.0.10
