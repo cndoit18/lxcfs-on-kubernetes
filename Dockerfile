@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM --platform=$BUILDPLATFORM golang:1.24.4 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25 AS builder
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
@@ -28,10 +28,10 @@ ARG UPX_VERSION=5.0.1
 RUN BUILDARCH="${BUILDPLATFORM##*/}"; \
     UPX_URL="https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${BUILDARCH}_linux.tar.xz"; \
     if wget -q "${UPX_URL}" -O /tmp/upx.tar.xz; then \
-        tar -xJvf /tmp/upx.tar.xz -C /usr/bin --strip-components=1 "upx-${UPX_VERSION}-${BUILDARCH}_linux/upx"; \
-        rm -f /tmp/upx.tar.xz; \
+    tar -xJvf /tmp/upx.tar.xz -C /usr/bin --strip-components=1 "upx-${UPX_VERSION}-${BUILDARCH}_linux/upx"; \
+    rm -f /tmp/upx.tar.xz; \
     else \
-        echo "UPX not available for BUILDARCH=${BUILDARCH}; skipping compression"; \
+    echo "UPX not available for BUILDARCH=${BUILDARCH}; skipping compression"; \
     fi
 
 WORKDIR /workspace
@@ -50,9 +50,9 @@ RUN CGO_ENABLED="${CGO_ENABLED}" GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" \
 
 RUN BUILDARCH="${BUILDPLATFORM##*/}"; \
     if command -v upx >/dev/null 2>&1 && [ "${TARGETARCH}" = "${BUILDARCH}" ]; then \
-        upx -9 manager; \
+    upx -9 manager; \
     else \
-        echo "Skipping UPX (upx missing or cross-compile TARGETARCH=${TARGETARCH} BUILDARCH=${BUILDARCH})"; \
+    echo "Skipping UPX (upx missing or cross-compile TARGETARCH=${TARGETARCH} BUILDARCH=${BUILDARCH})"; \
     fi
 
 # alpine:3.22.0
