@@ -5,42 +5,36 @@ version: 2
 builds:
   - skip: true
 
-dockers:
-  - image_templates:
-      - "ghcr.io/cndoit18/lxcfs-agent:{{ .Tag }}"
-      - "ghcr.io/cndoit18/lxcfs-agent:latest"
-
-    use: buildx
-
-    build_flag_templates:
-      - --platform=linux/amd64,linux/arm64
-      - --push
-
-    # buildx multi-arch outputs are manifest lists; they must be pushed to a registry
-    # (cannot be exported/loaded into the local docker daemon).
-    skip_push: true
+dockers_v2:
+  - id: lxcfs-agent
+    images:
+    - ghcr.io/cndoit18/lxcfs-agent
+    tags:
+    - "{{ .Tag }}"
+    - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    build_args:
+      GOLDFLAGS: -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.AppVersion={{ .Version }}' -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.GitCommit={{ .FullCommit }}'
 
     dockerfile: Dockerfile.agent
     extra_files:
       - scripts/
-
-  - image_templates:
-      - "ghcr.io/cndoit18/lxcfs-manager:{{ .Tag }}"
-      - "ghcr.io/cndoit18/lxcfs-manager:latest"
-
-    use: buildx
-
-    build_flag_templates:
-      - --platform=linux/amd64,linux/arm64
-      - --push
-      - --build-arg=GOLDFLAGS=-X 'github.com/cndoit18/lxcfs-on-kubernetes/version.AppVersion={{ .Version }}' -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.GitCommit={{ .FullCommit }}'
-
-    # buildx multi-arch outputs are manifest lists; they must be pushed to a registry
-    # (cannot be exported/loaded into the local docker daemon).
-    skip_push: true
+      
+  - id: lxcfs-manager
+    images:
+    - ghcr.io/cndoit18/lxcfs-manager
+    tags:
+    - "{{ .Tag }}"
+    - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    build_args:
+      GOLDFLAGS: -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.AppVersion={{ .Version }}' -X 'github.com/cndoit18/lxcfs-on-kubernetes/version.GitCommit={{ .FullCommit }}'
 
     dockerfile: Dockerfile
-
     extra_files:
       - cmd/
       - pkg/
