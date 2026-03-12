@@ -34,6 +34,10 @@ are container aware such that the values displayed (e.g. in `/proc/uptime`)
 really reflect how long the container is running and not how long the host is
 running.
 
+## Breaking Changes
+
+Version v0.2.1 introduces a breaking change regarding the LXCFS mount path validation. For detailed information about this change and migration instructions, please refer to the [chart documentation](charts/lxcfs-on-kubernetes/README.md#breaking-changes-in-v021).
+
 ## Prerequisites
 
 1. `Kubernetes` cluster (v1.19+) is running. For local development purpose, check [Kind installation](https://kind.sigs.k8s.io/docs/user/quick-start/#installation).
