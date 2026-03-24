@@ -7,6 +7,7 @@ metadata:
   name: '{{ include "chart.fullname" . }}-controller-manager-daemonset'
   namespace: {{ .Release.Namespace | quote }}
 spec:
+  updateStrategy: {{- toYaml .Values.lxcfs.updateStrategy | nindent 4 }}
   selector:
     matchLabels: {{- include "chart.lxcfs.selectorLabels" . | nindent 6 }}
   template:
@@ -14,6 +15,18 @@ spec:
       annotations: {{- toYaml .Values.lxcfs.podAnnotations | nindent 8 }}
       labels: {{- include "chart.lxcfs.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.lxcfs.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.lxcfs.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.lxcfs.podSecurityContext }}
+      securityContext: {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - args: {{- include "chart.lxcfs.args" . | nindent 8 }}
         image: {{.Values.image.agent}}

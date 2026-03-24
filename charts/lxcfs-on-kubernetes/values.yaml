@@ -46,7 +46,12 @@ resources:
     cpu: 300m
     memory: 200Mi
 
-# affinity -- Affinity to add to the controller Pods
+# nodeSelector -- Node selector for the controller Deployment
+# <https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector>
+nodeSelector: {}
+
+# affinity -- Affinity for the controller Pods (podAntiAffinity, nodeAffinity, etc.).
+# May be set together with nodeSelector: the scheduler requires all of them to match (AND).
 affinity: {}
 #affinity:
 #  nodeAffinity:
@@ -64,6 +69,18 @@ affinity: {}
 #              app.kubernetes.io/compose: manager
 #          topologyKey: kubernetes.io/hostname
 #        weight: 100
+
+# tolerations -- Tolerations for the controller Deployment
+# <https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/>
+tolerations: []
+
+# podSecurityContext -- Pod-level security context for the controller
+# <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#podsecuritycontext-v1-core>
+podSecurityContext: {}
+
+# revisionHistoryLimit -- Number of old ReplicaSets to retain in the controller Deployment
+# <https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#revision-history-limit>
+revisionHistoryLimit: 10
 
 # podAnnotations -- Additional annotations to add to the controller Pods
 podAnnotations: {}
@@ -86,6 +103,30 @@ lxcfs:
     requests:
       cpu: 300m
       memory: 200M
+  # lxcfs.nodeSelector -- Node selector for the lxcfs DaemonSet (run only on matching nodes)
+  # <https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector>
+  nodeSelector: {}
+
+  # lxcfs.tolerations -- Tolerations for the lxcfs DaemonSet (e.g. to run on tainted nodes)
+  # <https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/>
+  # Example for a dedicated node pool:
+  # tolerations:
+  #   - key: dedicated
+  #     operator: Equal
+  #     value: lxcfs
+  #     effect: NoSchedule
+  tolerations: []
+
+  # lxcfs.updateStrategy -- Update strategy for the DaemonSet
+  # <https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#update-strategy>
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+
+  # lxcfs.podSecurityContext -- Pod-level security context for the lxcfs DaemonSet
+  podSecurityContext: {}
+
   # lxcfs.matchLabels -- For namespaces that match the labes, the Pods under it will mount lxcfs.
   matchLabels: 
     mount-lxcfs: enabled

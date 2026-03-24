@@ -60,6 +60,10 @@ lxcfs:
 | Key                      | Type   | Default                                             | Description |
 |--------------------------|--------|-----------------------------------------------------|-------------|
 | affinity                 | object | `{}`                                                | Affinity to add to the controller Pods |
+| nodeSelector             | object | `{}`                                                | Node selector for the controller Deployment |
+| tolerations              | list   | `[]`                                                | Tolerations for the controller Deployment |
+| podSecurityContext       | object | `{}`                                                | Pod-level security context for the controller |
+| revisionHistoryLimit     | int    | `10`                                                | Number of old ReplicaSets to retain for the Deployment |
 | image.agent              | string | `"ghcr.io/cndoit18/lxcfs-agent:v0.2.1"`            | lxcfs-on-kubernetes agent image |
 | image.manager            | string | `"ghcr.io/cndoit18/lxcfs-manager:v0.2.1"`          | lxcfs-on-kubernetes controller image |
 | imagePullSecrets         | list   | `[]`                                                | Reference to one or more secrets to be used when pulling images. See [Kubernetes documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) |
@@ -72,6 +76,10 @@ lxcfs:
 | lxcfs.matchLabels        | object | `{"mount-lxcfs":"enabled"}`                        | For namespaces that match the labels, the Pods under it will mount lxcfs |
 | lxcfs.mountPath          | string | `"/var/lib/lxcfs-on-k8s/lxcfs"`                    | Specify the mount path of lxcfs on the host |
 | lxcfs.podAnnotations     | object | `{}`                                                | Additional annotations to add to the agent Pods |
+| lxcfs.nodeSelector       | object | `{}`                                                | Node selector for the lxcfs DaemonSet |
+| lxcfs.tolerations        | list   | `[]`                                                | Tolerations for the lxcfs DaemonSet (e.g. to run on tainted nodes) |
+| lxcfs.updateStrategy     | object | `{"type":"RollingUpdate","rollingUpdate":{"maxUnavailable":1}}` | DaemonSet update strategy |
+| lxcfs.podSecurityContext | object | `{}`                                                | Pod-level security context for the lxcfs DaemonSet |
 | lxcfs.resources          | object | `{"limits":{"cpu":"500m","memory":"300Mi"},"requests":{"cpu":"300m","memory":"200M"}}` | Expects input structure as per specification. See [Kubernetes API](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core) |
 | lxcfs.useDaemonset       | bool   | `true`                                              | Installing lxcfs with daemonset |
 | podAnnotations           | object | `{}`                                                | Additional annotations to add to the controller Pods |
