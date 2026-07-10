@@ -1,3 +1,0 @@
-- op: replace
-  path: /spec/template/spec/containers/0/resources
-  value: "{{- toYaml .Values.lxcfs.resources | nindent 10 }}"

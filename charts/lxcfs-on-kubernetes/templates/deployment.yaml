@@ -11,7 +11,11 @@ spec:
     matchLabels: {{- include "chart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      annotations: {{- toYaml .Values.podAnnotations | nindent 8 }}
+      annotations: 
+        checksum/config: {{ include (print $.Template.BasePath "/mutatingwebhookconfiguration.yaml") . | sha256sum }} 
+{{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
       labels: {{- include "chart.selectorLabels" . | nindent 8 }}
     spec:
       affinity: {{ if .Values.affinity }}{{ toYaml .Values.affinity | nindent 8 }}{{ else }}{}{{ end }}

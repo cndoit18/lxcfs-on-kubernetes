@@ -39,11 +39,15 @@ jobs:
           go-version-file: go.mod
 
       - name: Install Helm
-        uses: azure/setup-helm@v5.0.1 
+        uses: azure/setup-helm@v5.0.1
 
       - name: Generate Helm
         run: |
           APP_VERSION=v1.0.0 make generate
+
+      - name: Lint Chart
+        run: |
+          helm lint charts/lxcfs-on-kubernetes
 
       - name: Check GoReleaser config
         uses: goreleaser/goreleaser-action@v7
