@@ -20,7 +20,7 @@ RUN apt-get update; \
 	apt-get install -y --no-install-recommends meson python3-jinja2 libfuse3-dev help2man systemd
 
 WORKDIR /lxcfs
-ARG LXCFS=6.0.4
+ARG LXCFS=7.0.0
 RUN wget -q "https://linuxcontainers.org/downloads/lxcfs/lxcfs-$LXCFS.tar.gz" -O - | \
 	tar -xzf - --strip-components=1
 RUN meson setup -Dinit-script=systemd --prefix=/usr build/; \
@@ -31,8 +31,8 @@ WORKDIR /opt/tools
 ARG CRICTLVERSION="1.33.0"
 ARG TARGETARCH
 RUN case "${TARGETARCH}" in \
-		amd64|arm64) CRICTL_ARCH="${TARGETARCH}" ;; \
-		*) echo "Unsupported TARGETARCH=${TARGETARCH} (expected amd64 or arm64)" >&2; exit 1 ;; \
+	amd64|arm64) CRICTL_ARCH="${TARGETARCH}" ;; \
+	*) echo "Unsupported TARGETARCH=${TARGETARCH} (expected amd64 or arm64)" >&2; exit 1 ;; \
 	esac; \
 	wget -q "https://github.com/kubernetes-sigs/cri-tools/releases/download/v${CRICTLVERSION}/crictl-v${CRICTLVERSION}-linux-${CRICTL_ARCH}.tar.gz" -O crictl.tgz; \
 	tar -xzf crictl.tgz; \
@@ -49,9 +49,9 @@ RUN ARCH="$(uname -m)"; \
 	cp "/lib/$ARCH-linux-gnu/libpthread.so.0" "lib/$ARCH-linux-gnu/"; \
 	cp "/lib/$ARCH-linux-gnu/libc.so.6" "lib/$ARCH-linux-gnu/"; \
 	if [ "$ARCH" = "aarch64" ]; then \
-		cp "/lib/$ARCH-linux-gnu/ld-linux-aarch64.so.1" "lib/ld-linux-aarch64.so.1"; \
+	cp "/lib/$ARCH-linux-gnu/ld-linux-aarch64.so.1" "lib/ld-linux-aarch64.so.1"; \
 	else \
-		cp "/lib/$ARCH-linux-gnu/ld-linux-${ARCH//_/-}.so."* "lib64/"; \
+	cp "/lib/$ARCH-linux-gnu/ld-linux-${ARCH//_/-}.so."* "lib64/"; \
 	fi
 
 # alpine:3.22.0 (use tag so buildx can resolve the correct multi-arch manifest)
