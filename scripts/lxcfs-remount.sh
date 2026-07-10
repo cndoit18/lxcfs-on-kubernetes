@@ -19,13 +19,15 @@ for container in $containers; do
         echo "remount $container"
         PID=$(crictl inspect --output go-template --template '{{- .info.pid -}}' $container)
         # mount /proc
-        for file in meminfo cpuinfo loadavg stat diskstats swaps uptime; do
+        for file in meminfo cpuinfo loadavg stat diskstats swaps uptime slabinfo; do
             echo nsenter --target $PID --mount -- mount -o bind "$LXCFS/proc/$file" "/proc/$file"
             nsenter --target $PID --mount -- mount -o bind "$LXCFS/proc/$file" "/proc/$file"
         done
 
         echo nsenter --target $PID --mount -- mount -o bind "$LXCFS/sys/devices/system/cpu" "/sys/devices/system/cpu"
         nsenter --target $PID --mount -- mount -o bind "$LXCFS/sys/devices/system/cpu" "/sys/devices/system/cpu"
+        echo nsenter --target $PID --mount -- mount -o bind "$LXCFS/proc/pressure" "/proc/pressure"
+        nsenter --target $PID --mount -- mount -o bind "$LXCFS/proc/pressure" "/proc/pressure"
     else
         echo "No LXCFS mount found for container $container"
     fi
