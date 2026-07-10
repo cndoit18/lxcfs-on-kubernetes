@@ -1,6 +1,14 @@
 # replicas -- Number of replicas for the controller
 replicas: 1
 
+# certManager.enabled -- Use cert-manager to issue and rotate the webhook serving
+# certificate. When false (default), Helm generates a self-signed certificate on
+# first install and reuses the existing one on every subsequent upgrade, so the
+# certificate and CA bundle never change unless the Secret is deleted.
+# Requires cert-manager to be installed when set to true.
+certManager:
+  enabled: false
+
 image:
   # image.manager -- lxcfs-on-kubernetes controller image
   manager: ghcr.io/cndoit18/lxcfs-manager:latest
