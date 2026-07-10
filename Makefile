@@ -159,12 +159,12 @@ endef
 
 export UPDATE_CHART_YAML
 $(CHARTS_DIRECTORY)/lxcfs-on-kubernetes-$(RELEASE_VERSION).tgz: helm
-	sed -i.bak -E "$$UPDATE_CHART_YAML" $(CHART_PROJECT_PATH)/Chart.yaml
+	trap 'mv -f $(CHART_PROJECT_PATH)/Chart.yaml.bak $(CHART_PROJECT_PATH)/Chart.yaml' EXIT; \
+	sed -i.bak -E "$$UPDATE_CHART_YAML" $(CHART_PROJECT_PATH)/Chart.yaml; \
 	$(HELM) package $(CHART_PROJECT_PATH) \
 		--version $(RELEASE_VERSION) \
 		--app-version $(RELEASE_VERSION) \
 		--destination $(CHARTS_DIRECTORY)
-	-mv $(CHART_PROJECT_PATH)/Chart.yaml.bak $(CHART_PROJECT_PATH)/Chart.yaml
 
 .PHONY: helm-generate
 helm-generate: $(CHARTS_DIRECTORY)/lxcfs-on-kubernetes-$(RELEASE_VERSION).tgz
