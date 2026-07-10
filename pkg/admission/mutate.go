@@ -119,6 +119,8 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 		"lxcfs-proc-swaps":             "/proc/swaps",
 		"lxcfs-proc-uptime":            "/proc/uptime",
 		"lxcfs-proc-loadavg":           "/proc/loadavg",
+		"lxcfs-proc-pressure":          "/proc/pressure",
+		"lxcfs-proc-slabinfo":          "/proc/slabinfo",
 		"lxcfs-sys-devices-system-cpu": "/sys/devices/system/cpu",
 		"lxcfs-root-parent-dir":        filepath.Dir(strings.TrimRight(m.mutatePath, "/")),
 	}
@@ -192,6 +194,16 @@ func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
 		"lxcfs-proc-loadavg": {
 			HostPath: &corev1.HostPathVolumeSource{
 				Path: m.mutatePath + "proc/loadavg",
+			},
+		},
+		"lxcfs-proc-pressure": {
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: m.mutatePath + "proc/pressure",
+			},
+		},
+		"lxcfs-proc-slabinfo": {
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: m.mutatePath + "proc/slabinfo",
 			},
 		},
 		"lxcfs-sys-devices-system-cpu": {
