@@ -48,6 +48,7 @@ RUN ARCH="$(uname -m)"; \
 	cp "/lib/$ARCH-linux-gnu/libgcc_s.so.1" "lib/$ARCH-linux-gnu/"; \
 	cp "/lib/$ARCH-linux-gnu/libpthread.so.0" "lib/$ARCH-linux-gnu/"; \
 	cp "/lib/$ARCH-linux-gnu/libc.so.6" "lib/$ARCH-linux-gnu/"; \
+	cp "/lib/$ARCH-linux-gnu/libm.so.6" "lib/$ARCH-linux-gnu/"; \
 	if [ "$ARCH" = "aarch64" ]; then \
 	cp "/lib/$ARCH-linux-gnu/ld-linux-aarch64.so.1" "lib/ld-linux-aarch64.so.1"; \
 	else \
