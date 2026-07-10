@@ -86,9 +86,11 @@ lxcfs:
     requests:
       cpu: 300m
       memory: 200M
-  # lxcfs.matchLabels -- For pods that match the labes, the Pods under it will mount lxcfs.
-  matchLabels: 
+  # lxcfs.podMatchLabels -- For pods that match the labes, the Pods under it will mount lxcfs.
+  podMatchLabels: 
     platform.glm.ai/mount-lxcfs: enabled
+  # lxcfs.namespaceMatchLabels -- For namespaces that match the labels, only pods in matching namespaces will be considered. Empty by default (namespaceSelector disabled).
+  namespaceMatchLabels: {}
   # lxcfs.podAnnotations -- Additional annotations to add to the agent Pods
   podAnnotations: {}
 

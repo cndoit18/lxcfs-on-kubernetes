@@ -1,3 +1,6 @@
+{{- if and (not .Values.lxcfs.podMatchLabels) (not .Values.lxcfs.namespaceMatchLabels) }}
+{{- fail "at least one of lxcfs.podMatchLabels or lxcfs.namespaceMatchLabels must be configured" }}
+{{- end }}
 {{- $secretName := printf "%s-certificate" (include "chart.fullname" .) }}
 {{- $existing := lookup "v1" "Secret" .Release.Namespace $secretName }}
 {{- $caCert := "" }}
@@ -34,8 +37,14 @@ webhooks:
       path: /mount-lxcfs
   failurePolicy: Ignore
   name: club.cndoit18.lxcfs-on-kubernetes
+  {{- if .Values.lxcfs.namespaceMatchLabels }}
+  namespaceSelector:
+    matchLabels: {{- toYaml .Values.lxcfs.namespaceMatchLabels | nindent 6 }}
+  {{- end }}
+  {{- if .Values.lxcfs.podMatchLabels }}
   objectSelector:
-    matchLabels: {{- toYaml .Values.lxcfs.matchLabels | nindent 6 }}
+    matchLabels: {{- toYaml .Values.lxcfs.podMatchLabels | nindent 6 }}
+  {{- end }}
   rules:
   - apiGroups:
     - ""
