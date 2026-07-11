@@ -20,21 +20,8 @@ IMAGE_NAME := lxcfs-manager
 AGENT_IMAGE_NAME := lxcfs-agent
 BUILD_TAG := dev
 
-MANIFESTS_DIR ?= config
-RBAC_DIR ?= $(MANIFESTS_DIR)/rbac
-BOILERPLATE_FILE ?= ./hack/boilerplate.go.txt
-
-GEN_CRD_OPTIONS ?= crd:trivialVersions=true
-GEN_RBAC_OPTIONS ?= rbac:roleName=manager-role
-GEN_WEBHOOK_OPTIONS ?= webhook
-GEN_OBJECT_OPTIONS ?= object:headerFile=$(BOILERPLATE_FILE)
-GEN_OUTPUTS_OPTIONS ?= output:rbac:artifacts:config=$(RBAC_DIR)
-
 REPO = $(shell go list -m)
 GOLDFLAGS="-X '$(REPO)/version.AppVersion=$(APP_VERSION)' -X '$(REPO)/version.GitCommit=$(GIT_COMMIT)'"
-
-manifests: controller-gen
-	$(CONTROLLER_GEN) paths="./..." $(GEN_RBAC_OPTIONS) $(GEN_WEBHOOK_OPTIONS) $(GEN_OBJECT_OPTIONS) $(GEN_OUTPUTS)
 
 fmt:
 	go fmt ./...
@@ -46,7 +33,7 @@ lint:
 	$(GOLANGCI_LINT) run --timeout 2m0s ./...
 
 # Generate code
-generate: manifests helm-generate ## Generate code, charts...
+generate: helm-generate ## Generate code, charts...
 
 .PHONY: docker-build
 docker-build: ## Build image
@@ -77,28 +64,8 @@ $(BIN):
 
 .PHONY: dev-tools
 dev-tools: \
-	controller-gen \
 	golangci-lint \
 	cr
-
-# find or download controller-gen
-# download controller-gen if necessary
-CONTROLLER_GEN_VERSION := 0.8.0
-CONTROLLER_GEN := $(BIN)/controller-gen
-
-.PHONY: controller-gen
-controller-gen:
-	@$(CONTROLLER_GEN) --version 2>&1 \
-		| grep 'v$(CONTROLLER_GEN_VERSION)' \
-	|| rm -f $(CONTROLLER_GEN)
-	@$(MAKE) $(CONTROLLER_GEN)
-
-$(CONTROLLER_GEN):
-	$(MAKE) $(BIN)
-	# https://github.com/kubernetes-sigs/controller-tools/tree/master/cmd/controller-gen
-	go get 'sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION)'
-	go build -mod=readonly -o $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
-	go mod tidy
 
 # find or download golangci-lint
 # download golangci-lint if necessary
