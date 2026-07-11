@@ -1,3 +1,0 @@
-- op: replace
-  path: /webhooks/0/namespaceSelector/matchLabels
-  value: "{{- toYaml .Values.lxcfs.matchLabels | nindent 6 }}"
