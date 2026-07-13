@@ -58,6 +58,10 @@ RUN ARCH="$(uname -m)"; \
 # alpine:3.22.0 (use tag so buildx can resolve the correct multi-arch manifest)
 FROM alpine:3.22.0
 
+# nsenter is part of util-linux, not busybox; needed by the DaemonSet
+# initContainer and by lxcfs-remount.sh to operate in the host mount ns.
+RUN apk add --no-cache util-linux-misc
+
 COPY --from=builder /rootfs/ /
 COPY --from=builder /opt/tools/crictl /usr/local/bin/crictl
 COPY scripts/lxcfs-remount.sh /usr/local/bin/lxcfs-remount.sh
