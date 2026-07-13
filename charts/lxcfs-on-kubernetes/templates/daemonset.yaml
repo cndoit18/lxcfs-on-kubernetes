@@ -14,6 +14,20 @@ spec:
       annotations: {{- toYaml .Values.lxcfs.podAnnotations | nindent 8 }}
       labels: {{- include "chart.lxcfs.selectorLabels" . | nindent 8 }}
     spec:
+      initContainers:
+      - name: cleanup-stale-lxcfs
+        image: {{.Values.image.agent}}
+        imagePullPolicy: {{ .Values.pullPolicy | quote }}
+        command:
+        - sh
+        - -c
+        - |
+          set -x
+          M={{ trimSuffix "/" .Values.lxcfs.mountPath | quote }}
+          nsenter -t 1 -m -- umount -l "$M" 2>/dev/null || true
+          nsenter -t 1 -m -- mkdir -p "$M"
+        securityContext:
+          privileged: true
       containers:
       - args: {{- include "chart.lxcfs.args" . | nindent 8 }}
         image: {{.Values.image.agent}}
@@ -51,7 +65,6 @@ spec:
           name: lxcfs-crictl-config
       - hostPath:
           path: {{.Values.lxcfs.mountPath}}
-          type: DirectoryOrCreate
         name: lxcfs
       - hostPath:
           path: /sys/fs/cgroup
