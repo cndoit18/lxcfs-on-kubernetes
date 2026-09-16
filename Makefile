@@ -124,10 +124,17 @@ s#version: .*#version: $(RELEASE_VERSION)#
 s#appVersion: .*#appVersion: $(RELEASE_VERSION)#
 endef
 
+define UPDATE_VALUES_YAML
+s#lxcfs-manager:.*#lxcfs-manager:v$(RELEASE_VERSION)#
+s#lxcfs-agent:.*#lxcfs-agent:v$(RELEASE_VERSION)#
+endef
+
 export UPDATE_CHART_YAML
+export UPDATE_VALUES_YAML
 $(CHARTS_DIRECTORY)/lxcfs-on-kubernetes-$(RELEASE_VERSION).tgz: helm
-	trap 'mv -f $(CHART_PROJECT_PATH)/Chart.yaml.bak $(CHART_PROJECT_PATH)/Chart.yaml' EXIT; \
+	trap 'mv -f $(CHART_PROJECT_PATH)/Chart.yaml.bak $(CHART_PROJECT_PATH)/Chart.yaml; mv -f $(CHART_PROJECT_PATH)/values.yaml.bak $(CHART_PROJECT_PATH)/values.yaml' EXIT; \
 	sed -i.bak -E "$$UPDATE_CHART_YAML" $(CHART_PROJECT_PATH)/Chart.yaml; \
+	sed -i.bak -E "$$UPDATE_VALUES_YAML" $(CHART_PROJECT_PATH)/values.yaml; \
 	$(HELM) package $(CHART_PROJECT_PATH) \
 		--version $(RELEASE_VERSION) \
 		--app-version $(RELEASE_VERSION) \
