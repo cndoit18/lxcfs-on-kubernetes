@@ -51,7 +51,7 @@ func main() {
 		leaderElection          = flag.Bool("leader-election", false, "LeaderElection determines whether or not to use leader election when starting the manager.")
 		leaderElectionNamespace = flag.String("leader-election-namespace", "default", "The leader election namespace.")
 		leaderElectionID        = flag.String("leader-election-id", "lxcfs-on-kubernetes-leader-election", "The leader election id.")
-		lxcfsPath               = flag.String("lxcfs-path", "/var/lib/lxcfs-on-k8s/lxcfs", "Path for lxcfs mounts.")
+		lxcfsPath               = flag.String("lxcfs-path", utils.DefaultLxcfsPath, "Path for lxcfs mounts.")
 		// nolint: lll
 		lxcfsProcFiles = flag.String("lxcfs-proc-files", strings.Join(utils.DefaultProcFiles, ","), "Comma separated list of lxcfs proc files to mount into pods, e.g. \"cpuinfo,diskstats\". "+
 			"Entries may be names relative to /proc or absolute /proc paths. "+

@@ -146,6 +146,51 @@ func TestParseProcFiles(t *testing.T) {
 			in:      "cpuinfo//online",
 			wantErr: true,
 		},
+		{
+			name:    "proc prefix without leading slash",
+			in:      "proc/cpuinfo",
+			wantErr: true,
+		},
+		{
+			name:    "proc alone",
+			in:      "proc",
+			wantErr: true,
+		},
+		{
+			name:    "doubled proc prefix",
+			in:      "/proc/proc/cpuinfo",
+			wantErr: true,
+		},
+		{
+			name:    "uppercase yields invalid pod volume name",
+			in:      "CPUINFO",
+			wantErr: true,
+		},
+		{
+			name:    "underscore yields invalid pod volume name",
+			in:      "some_file",
+			wantErr: true,
+		},
+		{
+			name:    "leading hyphen segment",
+			in:      "-cpu",
+			wantErr: true,
+		},
+		{
+			name:    "trailing hyphen segment",
+			in:      "cpu-",
+			wantErr: true,
+		},
+		{
+			name:    "pod volume name too long",
+			in:      strings.Repeat("a", 64),
+			wantErr: true,
+		},
+		{
+			name:    "entries colliding on the same pod volume name",
+			in:      "sys/vm,sys-vm",
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -162,5 +207,36 @@ func TestParseProcFiles(t *testing.T) {
 				t.Errorf("ParseProcFiles(%q) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestProcVolumeName(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "simple file", in: "cpuinfo", want: "lxcfs-proc-cpuinfo"},
+		{name: "directory", in: "pressure", want: "lxcfs-proc-pressure"},
+		{name: "nested path separators become hyphens", in: "sys/vm", want: "lxcfs-proc-sys-vm"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ProcVolumeName(tt.in); got != tt.want {
+				t.Errorf("ProcVolumeName(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestValidateProcFiles(t *testing.T) {
+	if err := ValidateProcFiles(DefaultProcFiles); err != nil {
+		t.Errorf("ValidateProcFiles(DefaultProcFiles) error = %v, want nil", err)
+	}
+	if err := ValidateProcFiles([]string{}); err != nil {
+		t.Errorf("ValidateProcFiles([]) error = %v, want nil", err)
+	}
+	if err := ValidateProcFiles([]string{"a/b", "a-b"}); err == nil {
+		t.Error("ValidateProcFiles([\"a/b\",\"a-b\"]) = nil, want collision error")
 	}
 }

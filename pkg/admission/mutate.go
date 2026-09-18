@@ -19,6 +19,7 @@ package admission
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"sort"
@@ -34,8 +35,6 @@ import (
 )
 
 const (
-	// procVolumePrefix is the prefix of the volume names used to mount lxcfs proc files.
-	procVolumePrefix = "lxcfs-proc-"
 	// sysDevicesSystemCPUVolume mounts the lxcfs virtualized cpu view.
 	sysDevicesSystemCPUVolume = "lxcfs-sys-devices-system-cpu"
 	// rootParentDirVolume mounts the lxcfs parent directory to keep the
@@ -60,8 +59,8 @@ func WithMutatePath(mutatePath string) admissionOption {
 }
 
 // WithMutateProcFiles sets the lxcfs proc files to be mounted into pods.
-// The entries must already be normalized (see utils.ParseProcFiles).
-// An empty (non-nil) list mounts no proc files.
+// The entries are validated by AddToManager; see utils.ParseProcFiles for
+// the accepted forms. An empty (non-nil) list mounts no proc files.
 func WithMutateProcFiles(procFiles []string) admissionOption {
 	return func(m *mutate) {
 		m.procFiles = procFiles
@@ -82,8 +81,14 @@ func AddToManager(mgr manager.Manager, opts ...admissionOption) error {
 	for _, opt := range opts {
 		opt(m)
 	}
+	if m.mutatePath == "" {
+		WithMutatePath(utils.DefaultLxcfsPath)(m)
+	}
 	if m.procFiles == nil {
 		m.procFiles = utils.DefaultProcFiles
+	}
+	if err := utils.ValidateProcFiles(m.procFiles); err != nil {
+		return fmt.Errorf("invalid proc files: %w", err)
 	}
 
 	mgr.GetWebhookServer().Register("/mount-lxcfs", &k8sadmission.Webhook{
@@ -152,7 +157,7 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 				Name:             k,
 				MountPath:        v,
 				ReadOnly:         true,
-				MountPropagation: m.mountPropagation(k),
+				MountPropagation: mountPropagation(k),
 			})
 	}
 
@@ -164,7 +169,7 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 }
 
 // mountPropagation returns the mount propagation mode for a lxcfs volume.
-func (m *mutate) mountPropagation(mountName string) *corev1.MountPropagationMode {
+func mountPropagation(mountName string) *corev1.MountPropagationMode {
 	if mountName == rootParentDirVolume {
 		return ptr.To(corev1.MountPropagationHostToContainer)
 	}
@@ -178,7 +183,7 @@ func (m *mutate) lxcfsMounts() map[string]string {
 		rootParentDirVolume:       filepath.Dir(strings.TrimRight(m.mutatePath, "/")),
 	}
 	for _, name := range m.procFiles {
-		mounts[procVolumeName(name)] = "/proc/" + name
+		mounts[utils.ProcVolumeName(name)] = "/proc/" + name
 	}
 	return mounts
 }
@@ -224,17 +229,11 @@ func (m *mutate) lxcfsVolumes() map[string]corev1.VolumeSource {
 		},
 	}
 	for _, name := range m.procFiles {
-		volumes[procVolumeName(name)] = corev1.VolumeSource{
+		volumes[utils.ProcVolumeName(name)] = corev1.VolumeSource{
 			HostPath: &corev1.HostPathVolumeSource{
 				Path: m.mutatePath + "proc/" + name,
 			},
 		}
 	}
 	return volumes
-}
-
-// procVolumeName returns the volume name for a lxcfs proc file,
-// e.g. "cpuinfo" becomes "lxcfs-proc-cpuinfo".
-func procVolumeName(name string) string {
-	return procVolumePrefix + strings.ReplaceAll(name, "/", "-")
 }

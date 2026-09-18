@@ -96,10 +96,12 @@ lxcfs:
   # lxcfs.mountPath -- Specify the mount path of lxcfs on the host
   mountPath: /var/lib/lxcfs-on-k8s/lxcfs
   # lxcfs.procFiles -- LXCFS proc files to mount into pods by the webhook.
-  # Entries are names relative to `/proc` (e.g. `cpuinfo`); an absolute `/proc/...` prefix is also accepted.
+  # Accepts a list of names relative to `/proc` (e.g. `cpuinfo`) or a comma separated string;
+  # an absolute `/proc/...` prefix is also accepted.
   # Older docker/runc releases only allow a subset of `/proc` files to be bind-mounted
   # (`cpuinfo`, `diskstats`, `meminfo`, `stat`, `swaps`, `uptime`); tune this list accordingly if pods
   # crash with `cannot be mounted because it is located inside "/proc"`.
+  # Only files exposed by lxcfs can be mounted; anything else fails pod startup (hostPath does not exist).
   # Set to an empty list (`[]`) to disable proc mounts entirely.
   procFiles:
   - cpuinfo
