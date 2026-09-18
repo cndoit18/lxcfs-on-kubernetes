@@ -66,6 +66,17 @@ lxcfs args
 {{- end }}
 
 {{/*
+lxcfs proc files: accepts either a list of names or an already joined comma separated string
+*/}}
+{{- define "chart.lxcfs.procFiles" -}}
+{{- if kindIs "string" .Values.lxcfs.procFiles }}
+{{- .Values.lxcfs.procFiles }}
+{{- else }}
+{{- join "," (default list .Values.lxcfs.procFiles) }}
+{{- end }}
+{{- end }}
+
+{{/*
 Selector labels
 */}}
 {{- define "chart.selectorLabels" -}}

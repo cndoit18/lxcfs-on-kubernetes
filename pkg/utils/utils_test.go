@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -59,5 +61,182 @@ func TestEnsureLxcfsParentDir(t *testing.T) {
 				t.Errorf("EnsureLxcfsParentDir(%q) error = %v, wantErr %v", tt.path, err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func TestParseProcFiles(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		want    []string
+		wantErr bool
+	}{
+		{
+			name: "empty disables proc mounts",
+			in:   "",
+			want: []string{},
+		},
+		{
+			name: "single name",
+			in:   "cpuinfo",
+			want: []string{"cpuinfo"},
+		},
+		{
+			name: "absolute proc path",
+			in:   "/proc/cpuinfo",
+			want: []string{"cpuinfo"},
+		},
+		{
+			name: "mixed forms with spaces",
+			in:   "cpuinfo, /proc/meminfo ,swaps",
+			want: []string{"cpuinfo", "meminfo", "swaps"},
+		},
+		{
+			name: "duplicates are deduplicated",
+			in:   "cpuinfo,/proc/cpuinfo,meminfo",
+			want: []string{"cpuinfo", "meminfo"},
+		},
+		{
+			name: "trailing comma is tolerated",
+			in:   "cpuinfo,",
+			want: []string{"cpuinfo"},
+		},
+		{
+			name: "directory entry",
+			in:   "pressure",
+			want: []string{"pressure"},
+		},
+		{
+			name: "default list round trip",
+			in:   strings.Join(DefaultProcFiles, ","),
+			want: DefaultProcFiles,
+		},
+		{
+			name:    "absolute path outside /proc",
+			in:      "/etc/passwd",
+			wantErr: true,
+		},
+		{
+			name:    "leading parent directory",
+			in:      "../etc/passwd",
+			wantErr: true,
+		},
+		{
+			name:    "nested parent directory traversal",
+			in:      "proc/../../etc/passwd",
+			wantErr: true,
+		},
+		{
+			name:    "traversal through proc prefix",
+			in:      "/proc/../etc/passwd",
+			wantErr: true,
+		},
+		{
+			name:    "dot",
+			in:      ".",
+			wantErr: true,
+		},
+		{
+			name:    "dotdot",
+			in:      "..",
+			wantErr: true,
+		},
+		{
+			name:    "non canonical path",
+			in:      "cpuinfo//online",
+			wantErr: true,
+		},
+		{
+			name:    "proc prefix without leading slash",
+			in:      "proc/cpuinfo",
+			wantErr: true,
+		},
+		{
+			name:    "proc alone",
+			in:      "proc",
+			wantErr: true,
+		},
+		{
+			name:    "doubled proc prefix",
+			in:      "/proc/proc/cpuinfo",
+			wantErr: true,
+		},
+		{
+			name:    "uppercase yields invalid pod volume name",
+			in:      "CPUINFO",
+			wantErr: true,
+		},
+		{
+			name:    "underscore yields invalid pod volume name",
+			in:      "some_file",
+			wantErr: true,
+		},
+		{
+			name:    "leading hyphen segment",
+			in:      "-cpu",
+			wantErr: true,
+		},
+		{
+			name:    "trailing hyphen segment",
+			in:      "cpu-",
+			wantErr: true,
+		},
+		{
+			name:    "pod volume name too long",
+			in:      strings.Repeat("a", 64),
+			wantErr: true,
+		},
+		{
+			name:    "entries colliding on the same pod volume name",
+			in:      "sys/vm,sys-vm",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseProcFiles(tt.in)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseProcFiles(%q) error = %v, wantErr %v", tt.in, err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ParseProcFiles(%q) = %v, want %v", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestProcVolumeName(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "simple file", in: "cpuinfo", want: "lxcfs-proc-cpuinfo"},
+		{name: "directory", in: "pressure", want: "lxcfs-proc-pressure"},
+		{name: "nested path separators become hyphens", in: "sys/vm", want: "lxcfs-proc-sys-vm"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ProcVolumeName(tt.in); got != tt.want {
+				t.Errorf("ProcVolumeName(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestValidateProcFiles(t *testing.T) {
+	if err := ValidateProcFiles(DefaultProcFiles); err != nil {
+		t.Errorf("ValidateProcFiles(DefaultProcFiles) error = %v, want nil", err)
+	}
+	if err := ValidateProcFiles([]string{}); err != nil {
+		t.Errorf("ValidateProcFiles([]) error = %v, want nil", err)
+	}
+	if err := ValidateProcFiles([]string{"a/b", "a-b"}); err == nil {
+		t.Error("ValidateProcFiles([\"a/b\",\"a-b\"]) = nil, want collision error")
 	}
 }

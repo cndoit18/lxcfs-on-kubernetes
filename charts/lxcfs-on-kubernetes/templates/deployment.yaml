@@ -35,6 +35,7 @@ spec:
       containers:
       - args:
         - --lxcfs-path={{.Values.lxcfs.mountPath}}
+        - --lxcfs-proc-files={{ include "chart.lxcfs.procFiles" . }}
         - --v={{.Values.logLevel}}
         - --leader-election={{.Values.leaderElection.enable}}
         - --leader-election-namespace={{.Values.leaderElection.namespace}}
