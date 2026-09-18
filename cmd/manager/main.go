@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"strings"
 
 	"github.com/spf13/pflag"
 	klog "k8s.io/klog/v2"
@@ -51,6 +52,12 @@ func main() {
 		leaderElectionNamespace = flag.String("leader-election-namespace", "default", "The leader election namespace.")
 		leaderElectionID        = flag.String("leader-election-id", "lxcfs-on-kubernetes-leader-election", "The leader election id.")
 		lxcfsPath               = flag.String("lxcfs-path", "/var/lib/lxcfs-on-k8s/lxcfs", "Path for lxcfs mounts.")
+		// nolint: lll
+		lxcfsProcFiles = flag.String("lxcfs-proc-files", strings.Join(utils.DefaultProcFiles, ","), "Comma separated list of lxcfs proc files to mount into pods, e.g. \"cpuinfo,diskstats\". "+
+			"Entries may be names relative to /proc or absolute /proc paths. "+
+			"Older docker/runc releases only allow mounting cpuinfo, diskstats, meminfo, stat, swaps and uptime from /proc; "+
+			"tune this list accordingly if pods fail with 'cannot be mounted because it is located inside \"/proc\"'. "+
+			"An empty value disables all proc mounts.")
 	)
 
 	// set logging
@@ -80,6 +87,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	procFiles, err := utils.ParseProcFiles(*lxcfsProcFiles)
+	if err != nil {
+		log.Error(err, "Failed to parse lxcfs proc files", "lxcfsProcFiles", *lxcfsProcFiles)
+		os.Exit(1)
+	}
+	log.Info("lxcfs proc files to mount", "procFiles", procFiles)
+
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
 		LeaderElection:          *leaderElection,
@@ -99,6 +113,7 @@ func main() {
 
 	if err := lxcfsadmission.AddToManager(mgr,
 		lxcfsadmission.WithMutatePath(*lxcfsPath),
+		lxcfsadmission.WithMutateProcFiles(procFiles),
 		lxcfsadmission.WithMutateDecoder(k8sadmission.NewDecoder(mgr.GetScheme())),
 	); err != nil {
 		log.Error(err, "Failed to add admission to manager")

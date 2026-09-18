@@ -29,6 +29,18 @@ import (
 	logr "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	k8sadmission "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/cndoit18/lxcfs-on-kubernetes/pkg/utils"
+)
+
+const (
+	// procVolumePrefix is the prefix of the volume names used to mount lxcfs proc files.
+	procVolumePrefix = "lxcfs-proc-"
+	// sysDevicesSystemCPUVolume mounts the lxcfs virtualized cpu view.
+	sysDevicesSystemCPUVolume = "lxcfs-sys-devices-system-cpu"
+	// rootParentDirVolume mounts the lxcfs parent directory to keep the
+	// FUSE mounts alive when the lxcfs agent restarts.
+	rootParentDirVolume = "lxcfs-root-parent-dir"
 )
 
 var (
@@ -46,6 +58,15 @@ func WithMutatePath(mutatePath string) admissionOption {
 		m.mutatePath = mutatePath
 	}
 }
+
+// WithMutateProcFiles sets the lxcfs proc files to be mounted into pods.
+// The entries must already be normalized (see utils.ParseProcFiles).
+// An empty (non-nil) list mounts no proc files.
+func WithMutateProcFiles(procFiles []string) admissionOption {
+	return func(m *mutate) {
+		m.procFiles = procFiles
+	}
+}
 func WithMutateDecoder(decoder k8sadmission.Decoder) admissionOption {
 	return func(m *mutate) {
 		m.decoder = decoder
@@ -61,6 +82,9 @@ func AddToManager(mgr manager.Manager, opts ...admissionOption) error {
 	for _, opt := range opts {
 		opt(m)
 	}
+	if m.procFiles == nil {
+		m.procFiles = utils.DefaultProcFiles
+	}
 
 	mgr.GetWebhookServer().Register("/mount-lxcfs", &k8sadmission.Webhook{
 		Handler: m,
@@ -72,6 +96,7 @@ func AddToManager(mgr manager.Manager, opts ...admissionOption) error {
 type mutate struct {
 	decoder    k8sadmission.Decoder
 	mutatePath string
+	procFiles  []string
 }
 
 func (m *mutate) Handle(ctx context.Context, req k8sadmission.Request) k8sadmission.Response {
@@ -111,33 +136,12 @@ func (m *mutate) ensureContainer(cs []corev1.Container) []corev1.Container {
 }
 
 func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.VolumeMount {
-	mounts := map[string]string{
-		"lxcfs-proc-cpuinfo":           "/proc/cpuinfo",
-		"lxcfs-proc-diskstats":         "/proc/diskstats",
-		"lxcfs-proc-meminfo":           "/proc/meminfo",
-		"lxcfs-proc-stat":              "/proc/stat",
-		"lxcfs-proc-swaps":             "/proc/swaps",
-		"lxcfs-proc-uptime":            "/proc/uptime",
-		"lxcfs-proc-loadavg":           "/proc/loadavg",
-		"lxcfs-proc-pressure":          "/proc/pressure",
-		"lxcfs-proc-slabinfo":          "/proc/slabinfo",
-		"lxcfs-sys-devices-system-cpu": "/sys/devices/system/cpu",
-		"lxcfs-root-parent-dir":        filepath.Dir(strings.TrimRight(m.mutatePath, "/")),
-	}
+	mounts := m.lxcfsMounts()
 	for _, v := range volumeMounts {
 		if _, ok := mounts[v.Name]; !ok {
 			continue
 		}
 		delete(mounts, v.Name)
-	}
-	mountPropagationMode := func(mountName string) *corev1.MountPropagationMode {
-		config := map[string]*corev1.MountPropagationMode{
-			"lxcfs-root-parent-dir": ptr.To(corev1.MountPropagationHostToContainer),
-		}
-		if _, ok := config[mountName]; ok {
-			return config[mountName]
-		}
-		return ptr.To(corev1.MountPropagationNone)
 	}
 
 	result := make([]corev1.VolumeMount, 0, len(volumeMounts)+len(mounts))
@@ -148,7 +152,7 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 				Name:             k,
 				MountPath:        v,
 				ReadOnly:         true,
-				MountPropagation: mountPropagationMode(k),
+				MountPropagation: m.mountPropagation(k),
 			})
 	}
 
@@ -159,64 +163,28 @@ func (m *mutate) ensureVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.V
 	return result
 }
 
-func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
-	volumes := map[string]corev1.VolumeSource{
-		"lxcfs-proc-cpuinfo": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/cpuinfo",
-			},
-		},
-		"lxcfs-proc-diskstats": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/diskstats",
-			},
-		},
-		"lxcfs-proc-meminfo": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/meminfo",
-			},
-		},
-		"lxcfs-proc-stat": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/stat",
-			},
-		},
-		"lxcfs-proc-swaps": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/swaps",
-			},
-		},
-		"lxcfs-proc-uptime": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/uptime",
-			},
-		},
-		"lxcfs-proc-loadavg": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/loadavg",
-			},
-		},
-		"lxcfs-proc-pressure": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/pressure",
-			},
-		},
-		"lxcfs-proc-slabinfo": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "proc/slabinfo",
-			},
-		},
-		"lxcfs-sys-devices-system-cpu": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: m.mutatePath + "sys/devices/system/cpu",
-			},
-		},
-		"lxcfs-root-parent-dir": {
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: filepath.Dir(strings.TrimRight(m.mutatePath, "/")),
-			},
-		},
+// mountPropagation returns the mount propagation mode for a lxcfs volume.
+func (m *mutate) mountPropagation(mountName string) *corev1.MountPropagationMode {
+	if mountName == rootParentDirVolume {
+		return ptr.To(corev1.MountPropagationHostToContainer)
 	}
+	return ptr.To(corev1.MountPropagationNone)
+}
+
+// lxcfsMounts returns the container mount paths of all lxcfs volumes, keyed by volume name.
+func (m *mutate) lxcfsMounts() map[string]string {
+	mounts := map[string]string{
+		sysDevicesSystemCPUVolume: "/sys/devices/system/cpu",
+		rootParentDirVolume:       filepath.Dir(strings.TrimRight(m.mutatePath, "/")),
+	}
+	for _, name := range m.procFiles {
+		mounts[procVolumeName(name)] = "/proc/" + name
+	}
+	return mounts
+}
+
+func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
+	volumes := m.lxcfsVolumes()
 
 	for _, v := range vs {
 		if _, ok := volumes[v.Name]; !ok {
@@ -239,4 +207,34 @@ func (m *mutate) ensureVolume(vs []corev1.Volume) []corev1.Volume {
 	})
 
 	return result
+}
+
+// lxcfsVolumes returns the volume sources of all lxcfs volumes, keyed by volume name.
+func (m *mutate) lxcfsVolumes() map[string]corev1.VolumeSource {
+	volumes := map[string]corev1.VolumeSource{
+		sysDevicesSystemCPUVolume: {
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: m.mutatePath + "sys/devices/system/cpu",
+			},
+		},
+		rootParentDirVolume: {
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: filepath.Dir(strings.TrimRight(m.mutatePath, "/")),
+			},
+		},
+	}
+	for _, name := range m.procFiles {
+		volumes[procVolumeName(name)] = corev1.VolumeSource{
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: m.mutatePath + "proc/" + name,
+			},
+		}
+	}
+	return volumes
+}
+
+// procVolumeName returns the volume name for a lxcfs proc file,
+// e.g. "cpuinfo" becomes "lxcfs-proc-cpuinfo".
+func procVolumeName(name string) string {
+	return procVolumePrefix + strings.ReplaceAll(name, "/", "-")
 }
