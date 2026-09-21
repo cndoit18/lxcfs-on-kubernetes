@@ -33,9 +33,15 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Least privilege for the job's GITHUB_TOKEN (used only for the git push
+    # below; docker, goreleaser and chart-releaser authenticate with GH_PAT).
+    permissions:
+      contents: write
     steps:
+      # Validate on every trigger, including tag pushes: tag names can contain
+      # shell metacharacters, and VERSION is used in shell commands below, so
+      # guarantee it is a strict v-prefixed semver before it is ever used.
       - name: Validate version
-        if: github.event_name == 'workflow_dispatch'
         run: |
           if [[ ! "${VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
             echo "::error::version must be a 'v'-prefixed semver (e.g. v0.2.9), got '${VERSION}'"
@@ -61,18 +67,30 @@ jobs:
           APP_VERSION=${VERSION} make generate
 
       # Only create the tag for manual dispatches; when triggered by a tag push
-        # the tag already exists. Use --force so re-running the workflow for an
-        # existing tag (e.g. to repair a release) does not fail.
+      # the tag already exists. Never move an existing release tag: if it is
+      # missing, create and push it; if it exists, it must point at HEAD
+      # (re-run to repair a release), otherwise fail so a version number never
+      # maps to different source code.
       - name: Tag
         if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@outlook.com"
-          git commit -am 'release ${{ env.VERSION }}' || true
+          git commit -am "release $VERSION" || true
           git push -f origin master
-          tag='${{ env.VERSION }}'
-          git tag --annotate --force --message "Tag for release $tag" "$tag"
-          git push --force origin "refs/tags/$tag"
+          tag="$VERSION"
+          if git rev-parse -q --verify "refs/tags/$tag" > /dev/null; then
+            tagged="$(git rev-parse "$tag^{commit}")"
+            head="$(git rev-parse HEAD)"
+            if [[ "$tagged" != "$head" ]]; then
+              echo "::error::refs/tags/$tag already exists at $tagged, which is not HEAD ($head). Refusing to move an existing release tag; delete it first if you really intend to re-release different code."
+              exit 1
+            fi
+            echo "Tag $tag already exists at HEAD; reusing it."
+          else
+            git tag --annotate --message "Tag for release $tag" "$tag"
+            git push origin "refs/tags/$tag"
+          fi
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4

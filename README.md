@@ -58,8 +58,10 @@ Two equivalent ways to release:
    same workflow triggers on `v*` tag pushes.
 
 Never create a GitHub release by hand: doing so skips attaching the chart asset and
-updating the Helm repository index (this broke the `v0.2.8` release). If a release is
-incomplete, re-run the `Release` workflow for that version — it is idempotent.
+updating the Helm repository index (this broke the `v0.2.8` release). If a release
+is incomplete, re-run the `Release` workflow for the same version — existing release
+assets are replaced. Note that re-running also re-publishes the images, so
+re-releasing an older version re-points the `latest` image tags back to it.
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fcndoit18%2Flxcfs-on-kubernetes.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fcndoit18%2Flxcfs-on-kubernetes?ref=badge_large)

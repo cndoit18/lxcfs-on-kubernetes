@@ -58,9 +58,12 @@ signs:
 release:
   draft: false
   prerelease: auto
-  # Make re-running the Release workflow for the same tag (or the duplicated
-  # run triggered by the tag push created via workflow_dispatch) idempotent:
-  # replace release assets that already exist instead of failing the upload.
+  # When a release for this tag already exists (a re-run to repair a release,
+  # or the duplicated run triggered by the tag push created via
+  # workflow_dispatch), replace its assets instead of failing the upload.
+  # Scope: GitHub release assets only. Re-running also re-pushes the images
+  # above — including the "latest" tag — so re-releasing an older version
+  # re-points "latest" back to it.
   replace_existing_artifacts: true
 
   extra_files:
