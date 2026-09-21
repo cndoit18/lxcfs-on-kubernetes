@@ -1,16 +1,47 @@
 name: Release
 
+# Release flow (both entry points converge on the same pipeline):
+#   1. workflow_dispatch with a version (e.g. v0.2.9): builds the chart, creates
+#      and pushes the tag, then publishes everything.
+#   2. push of a v* tag: same pipeline, skipping tag creation. This ensures a
+#      manually pushed tag still gets the complete release (chart .tgz asset,
+#      goreleaser checksums/assets, images, helm repo index update on gh-pages).
+#
+# Never create GitHub releases by hand: the chart asset and the helm index
+# update only happen here.
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version
+        description: Version (e.g. v0.2.9)
         required: true
+  push:
+    tags:
+      - 'v*'
+
+# Serialize release runs targeting the same version (a workflow_dispatch run
+# pushes the tag, which then triggers the push-triggered run for the same
+# version). Do not cancel in-flight runs.
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  # v0.2.9 either from the dispatch input or from the pushed tag name.
+  VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate version
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [[ ! "${VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::version must be a 'v'-prefixed semver (e.g. v0.2.9), got '${VERSION}'"
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
@@ -27,17 +58,21 @@ jobs:
 
       - name: Generate Helm
         run: |
-          APP_VERSION=${{github.event.inputs.version}} make generate
+          APP_VERSION=${VERSION} make generate
 
+      # Only create the tag for manual dispatches; when triggered by a tag push
+        # the tag already exists. Use --force so re-running the workflow for an
+        # existing tag (e.g. to repair a release) does not fail.
       - name: Tag
+        if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@outlook.com"
-          git commit -am 'release ${{ github.event.inputs.version }}' || true
+          git commit -am 'release ${{ env.VERSION }}' || true
           git push -f origin master
-          tag='${{ github.event.inputs.version }}'
-          git tag --annotate --message "Tag for release $tag" "$tag"
-          git push origin "refs/tags/$tag"
+          tag='${{ env.VERSION }}'
+          git tag --annotate --force --message "Tag for release $tag" "$tag"
+          git push --force origin "refs/tags/$tag"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4

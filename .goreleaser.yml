@@ -58,6 +58,10 @@ signs:
 release:
   draft: false
   prerelease: auto
+  # Make re-running the Release workflow for the same tag (or the duplicated
+  # run triggered by the tag push created via workflow_dispatch) idempotent:
+  # replace release assets that already exist instead of failing the upload.
+  replace_existing_artifacts: true
 
   extra_files:
     - glob: charts/*.tgz
