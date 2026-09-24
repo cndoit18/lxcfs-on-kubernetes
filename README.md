@@ -43,5 +43,25 @@ you can enable the namespace for injection.
 kubectl label namespace default mount-lxcfs=enabled
 ```
 
+## Release
+
+Releases are produced exclusively by the [`Release`](.github/workflows/release.yaml)
+workflow. It builds the Helm chart package, pushes the `lxcfs-manager` / `lxcfs-agent`
+images, creates the GitHub release with the chart `.tgz` attached, and updates the
+Helm repository index (`gh-pages`).
+
+Two equivalent ways to release:
+
+1. **Recommended:** run the `Release` workflow (Actions → Release → Run workflow) with
+   a `v`-prefixed semver version, e.g. `v0.2.9`.
+2. Push an annotated tag (`git tag --annotate v0.2.9 && git push origin v0.2.9`). The
+   same workflow triggers on `v*` tag pushes.
+
+Never create a GitHub release by hand: doing so skips attaching the chart asset and
+updating the Helm repository index (this broke the `v0.2.8` release). If a release
+is incomplete, re-run the `Release` workflow for the same version — existing release
+assets are replaced. Note that re-running also re-publishes the images, so
+re-releasing an older version re-points the `latest` image tags back to it.
+
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fcndoit18%2Flxcfs-on-kubernetes.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fcndoit18%2Flxcfs-on-kubernetes?ref=badge_large)

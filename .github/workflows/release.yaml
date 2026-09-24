@@ -1,16 +1,53 @@
 name: Release
 
+# Release flow (both entry points converge on the same pipeline):
+#   1. workflow_dispatch with a version (e.g. v0.2.9): builds the chart, creates
+#      and pushes the tag, then publishes everything.
+#   2. push of a v* tag: same pipeline, skipping tag creation. This ensures a
+#      manually pushed tag still gets the complete release (chart .tgz asset,
+#      goreleaser checksums/assets, images, helm repo index update on gh-pages).
+#
+# Never create GitHub releases by hand: the chart asset and the helm index
+# update only happen here.
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version
+        description: Version (e.g. v0.2.9)
         required: true
+  push:
+    tags:
+      - 'v*'
+
+# Serialize release runs targeting the same version (a workflow_dispatch run
+# pushes the tag, which then triggers the push-triggered run for the same
+# version). Do not cancel in-flight runs.
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  # v0.2.9 either from the dispatch input or from the pushed tag name.
+  VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Least privilege for the job's GITHUB_TOKEN (used only for the git push
+    # below; docker, goreleaser and chart-releaser authenticate with GH_PAT).
+    permissions:
+      contents: write
     steps:
+      # Validate on every trigger, including tag pushes: tag names can contain
+      # shell metacharacters, and VERSION is used in shell commands below, so
+      # guarantee it is a strict v-prefixed semver before it is ever used.
+      - name: Validate version
+        run: |
+          if [[ ! "${VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::version must be a 'v'-prefixed semver (e.g. v0.2.9), got '${VERSION}'"
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
@@ -27,17 +64,33 @@ jobs:
 
       - name: Generate Helm
         run: |
-          APP_VERSION=${{github.event.inputs.version}} make generate
+          APP_VERSION=${VERSION} make generate
 
+      # Only create the tag for manual dispatches; when triggered by a tag push
+      # the tag already exists. Never move an existing release tag: if it is
+      # missing, create and push it; if it exists, it must point at HEAD
+      # (re-run to repair a release), otherwise fail so a version number never
+      # maps to different source code.
       - name: Tag
+        if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@outlook.com"
-          git commit -am 'release ${{ github.event.inputs.version }}' || true
+          git commit -am "release $VERSION" || true
           git push -f origin master
-          tag='${{ github.event.inputs.version }}'
-          git tag --annotate --message "Tag for release $tag" "$tag"
-          git push origin "refs/tags/$tag"
+          tag="$VERSION"
+          if git rev-parse -q --verify "refs/tags/$tag" > /dev/null; then
+            tagged="$(git rev-parse "$tag^{commit}")"
+            head="$(git rev-parse HEAD)"
+            if [[ "$tagged" != "$head" ]]; then
+              echo "::error::refs/tags/$tag already exists at $tagged, which is not HEAD ($head). Refusing to move an existing release tag; delete it first if you really intend to re-release different code."
+              exit 1
+            fi
+            echo "Tag $tag already exists at HEAD; reusing it."
+          else
+            git tag --annotate --message "Tag for release $tag" "$tag"
+            git push origin "refs/tags/$tag"
+          fi
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
